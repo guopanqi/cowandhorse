@@ -10,7 +10,7 @@ export class EncounterSystem {
     if (this.currentNpc) return;
     this.currentNpc = npc;
 
-    this.minigames.start('logo-bigger', {
+    this.minigames.start(npc.config.minigame || 'logo-bigger', {
       title: npc.config.danger >= 3 ? '老板的新想法' : '临时需求',
       npcRole: npc.config.role,
       penaltyMinutes: npc.config.penaltyMinutes,
