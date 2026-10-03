@@ -9,6 +9,7 @@ import { officeLevel } from '../data/officeLevel.js';
 import { FollowCamera } from '../presentation/FollowCamera.js';
 import { Hud } from '../presentation/Hud.js';
 import { WorldBubbleLayer } from '../presentation/WorldBubbleLayer.js';
+import { MobileControls } from '../presentation/MobileControls.js';
 import { MinigameManager } from '../minigames/MinigameManager.js';
 import { QuickSyncGame } from '../minigames/QuickSyncGame.js';
 import { VersionHuntGame } from '../minigames/VersionHuntGame.js';
@@ -26,6 +27,7 @@ export class Game {
       <div class="game-shell">
         <div class="game-stage" data-stage></div>
         <div class="hud-layer" data-hud></div>
+        <div class="mobile-input-layer" data-mobile-input></div>
         <div class="minigame-layer" data-minigame></div>
       </div>
     `;
@@ -87,6 +89,20 @@ export class Game {
     this.hud = new Hud(
       this.root.querySelector('[data-hud]'),
     );
+
+    this.mobileControls =
+      new MobileControls(
+        this.root.querySelector(
+          '[data-mobile-input]',
+        ),
+        this.input,
+      );
+
+    this.hasTouch =
+      navigator.maxTouchPoints > 0 ||
+      window.matchMedia(
+        '(pointer: coarse)',
+      ).matches;
 
     this.bubbles =
       new WorldBubbleLayer(
@@ -189,6 +205,16 @@ export class Game {
 
     this.bubbles.update(
       this.level.agents,
+    );
+
+    this.mobileControls.setVisible(
+      this.hasTouch &&
+      (this.phase === 'prep' ||
+        this.phase === 'escape'),
+    );
+
+    this.mobileControls.setCrouched(
+      this.level.player.isCrouched,
     );
 
     this.hud.update(
