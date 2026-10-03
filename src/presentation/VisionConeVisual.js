@@ -1,5 +1,10 @@
 import * as THREE from 'three';
 
+const TRIANGLE_FLOATS = 9;
+const QUAD_FLOATS = 18;
+const DASHES_PER_SEGMENT = 3;
+const DASH_FLOATS = 6;
+
 export class VisionConeVisual {
   constructor(
     agent,
@@ -18,24 +23,7 @@ export class VisionConeVisual {
         agent.config.visionAngle,
       ) * 0.5;
 
-    this.segments = 36;
-
-    this.geometry =
-      new THREE.BufferGeometry();
-
-    this.positions =
-      new Float32Array(
-        this.segments *
-          9,
-      );
-
-    this.geometry.setAttribute(
-      'position',
-      new THREE.BufferAttribute(
-        this.positions,
-        3,
-      ),
-    );
+    this.segments = 48;
 
     this.safeColor =
       new THREE.Color(
@@ -47,24 +35,191 @@ export class VisionConeVisual {
         0xd13f35,
       );
 
-    this.material =
-      new THREE.MeshBasicMaterial({
-        color:
-          this.safeColor,
-        transparent: true,
-        opacity: 0.11,
-        depthWrite: false,
-        side:
-          THREE.DoubleSide,
-      });
+    this.group =
+      new THREE.Group();
 
-    this.mesh =
-      new THREE.Mesh(
-        this.geometry,
-        this.material,
+    // Keep the public API stable for OfficeLevel.
+    this.mesh = this.group;
+
+    this.solidGeometry =
+      new THREE.BufferGeometry();
+
+    this.solidPositions =
+      new Float32Array(
+        this.segments *
+          TRIANGLE_FLOATS,
       );
 
-    this.mesh.renderOrder = 2;
+    this.solidGeometry
+      .setAttribute(
+        'position',
+        new THREE.BufferAttribute(
+          this.solidPositions,
+          3,
+        ),
+      );
+
+    this.solidMaterial =
+      new THREE.MeshBasicMaterial({
+        color: this.safeColor,
+        transparent: true,
+        opacity: 0.105,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      });
+
+    this.solidMesh =
+      new THREE.Mesh(
+        this.solidGeometry,
+        this.solidMaterial,
+      );
+
+    this.partialGeometry =
+      new THREE.BufferGeometry();
+
+    this.partialPositions =
+      new Float32Array(
+        this.segments *
+          QUAD_FLOATS,
+      );
+
+    this.partialGeometry
+      .setAttribute(
+        'position',
+        new THREE.BufferAttribute(
+          this.partialPositions,
+          3,
+        ),
+      );
+
+    this.partialMaterial =
+      new THREE.MeshBasicMaterial({
+        color: this.safeColor,
+        transparent: true,
+        opacity: 0.035,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      });
+
+    this.partialMesh =
+      new THREE.Mesh(
+        this.partialGeometry,
+        this.partialMaterial,
+      );
+
+    this.patternGeometry =
+      new THREE.BufferGeometry();
+
+    this.patternPositions =
+      new Float32Array(
+        this.segments *
+          DASHES_PER_SEGMENT *
+          DASH_FLOATS,
+      );
+
+    this.patternGeometry
+      .setAttribute(
+        'position',
+        new THREE.BufferAttribute(
+          this.patternPositions,
+          3,
+        ),
+      );
+
+    this.patternMaterial =
+      new THREE.LineBasicMaterial({
+        color: this.safeColor,
+        transparent: true,
+        opacity: 0.28,
+        depthWrite: false,
+      });
+
+    this.patternLines =
+      new THREE.LineSegments(
+        this.patternGeometry,
+        this.patternMaterial,
+      );
+
+    this.alertGeometry =
+      new THREE.BufferGeometry();
+
+    this.alertPositions =
+      new Float32Array(
+        this.segments *
+          TRIANGLE_FLOATS,
+      );
+
+    this.alertGeometry
+      .setAttribute(
+        'position',
+        new THREE.BufferAttribute(
+          this.alertPositions,
+          3,
+        ),
+      );
+
+    this.alertMaterial =
+      new THREE.MeshBasicMaterial({
+        color: this.alertColor,
+        transparent: true,
+        opacity: 0.17,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      });
+
+    this.alertMesh =
+      new THREE.Mesh(
+        this.alertGeometry,
+        this.alertMaterial,
+      );
+
+    this.waveGeometry =
+      new THREE.BufferGeometry();
+
+    this.wavePositions =
+      new Float32Array(
+        this.segments * 6,
+      );
+
+    this.waveGeometry
+      .setAttribute(
+        'position',
+        new THREE.BufferAttribute(
+          this.wavePositions,
+          3,
+        ),
+      );
+
+    this.waveMaterial =
+      new THREE.LineBasicMaterial({
+        color: this.alertColor,
+        transparent: true,
+        opacity: 0.78,
+        depthWrite: false,
+      });
+
+    this.waveLines =
+      new THREE.LineSegments(
+        this.waveGeometry,
+        this.waveMaterial,
+      );
+
+    for (const child of [
+      this.solidMesh,
+      this.partialMesh,
+      this.patternLines,
+      this.alertMesh,
+      this.waveLines,
+    ]) {
+      child.renderOrder = 2;
+      this.group.add(child);
+    }
+
+    this.partialMesh.renderOrder = 1;
+    this.solidMesh.renderOrder = 2;
+    this.patternLines.renderOrder = 3;
+    this.alertMesh.renderOrder = 4;
+    this.waveLines.renderOrder = 5;
   }
 
   update() {
@@ -74,19 +229,19 @@ export class VisionConeVisual {
       this.agent.state ===
         'capture-ready';
 
-    this.mesh.visible =
+    this.group.visible =
       this.agent.enabled &&
       !hiddenState;
 
-    if (!this.mesh.visible) {
+    if (!this.group.visible) {
       return;
     }
 
-    this.mesh.position.copy(
+    this.group.position.copy(
       this.agent.position,
     );
 
-    this.mesh.position.y =
+    this.group.position.y =
       0.035;
 
     const heading =
@@ -98,6 +253,42 @@ export class VisionConeVisual {
     const origin =
       this.agent.eyePosition;
 
+    const profiles = [];
+
+    for (
+      let i = 0;
+      i <= this.segments;
+      i++
+    ) {
+      const angle =
+        -this.halfAngle +
+        (i /
+          this.segments) *
+          this.halfAngle *
+          2;
+
+      profiles.push(
+        this.profileForAngle(
+          origin,
+          heading + angle,
+        ),
+      );
+    }
+
+    const hot =
+      this.agent.state ===
+        'chase'
+        ? 1
+        : THREE.MathUtils.clamp(
+            this.agent.detection,
+            0,
+            1,
+          );
+
+    const alertRadius =
+      this.radius * hot;
+
+    let patternOffset = 0;
 
     for (
       let i = 0;
@@ -118,94 +309,221 @@ export class VisionConeVisual {
           this.halfAngle *
           2;
 
-      const d0 =
-        this.distanceForAngle(
-          origin,
-          heading + a0,
-        );
+      const p0 = profiles[i];
+      const p1 = profiles[i + 1];
 
-      const d1 =
-        this.distanceForAngle(
-          origin,
-          heading + a1,
-        );
-
-      const offset =
-        i * 9;
-
-      this.positions[
-        offset
-      ] = 0;
-
-      this.positions[
-        offset + 1
-      ] = 0;
-
-      this.positions[
-        offset + 2
-      ] = 0;
-
-      this.positions[
-        offset + 3
-      ] =
-        Math.sin(a0) * d0;
-
-      this.positions[
-        offset + 4
-      ] = 0;
-
-      this.positions[
-        offset + 5
-      ] =
-        Math.cos(a0) * d0;
-
-      this.positions[
-        offset + 6
-      ] =
-        Math.sin(a1) * d1;
-
-      this.positions[
-        offset + 7
-      ] = 0;
-
-      this.positions[
-        offset + 8
-      ] =
-        Math.cos(a1) * d1;
-    }
-
-    this.geometry.attributes
-      .position.needsUpdate =
-      true;
-
-    this.geometry.computeBoundingSphere();
-
-    this.mesh.rotation.y =
-      heading;
-
-    const hot =
-      this.agent.state ===
-      'chase'
-        ? 1
-        : THREE.MathUtils.clamp(
-            this.agent.detection,
-            0,
-            1,
-          );
-
-    this.material.color
-      .copy(this.safeColor)
-      .lerp(
-        this.alertColor,
-        hot,
+      this.writeTriangle(
+        this.solidPositions,
+        i * TRIANGLE_FLOATS,
+        a0,
+        p0.clearEnd,
+        a1,
+        p1.clearEnd,
       );
 
-    this.material.opacity =
-      0.09 +
-      hot * 0.2;
+      const partial0 =
+        p0.partialStart !== null;
+
+      const partial1 =
+        p1.partialStart !== null;
+
+      const start0 =
+        partial0
+          ? p0.partialStart
+          : p0.clearEnd;
+
+      const end0 =
+        partial0
+          ? p0.partialEnd
+          : start0;
+
+      const start1 =
+        partial1
+          ? p1.partialStart
+          : p1.clearEnd;
+
+      const end1 =
+        partial1
+          ? p1.partialEnd
+          : start1;
+
+      this.writeQuad(
+        this.partialPositions,
+        i * QUAD_FLOATS,
+        a0,
+        start0,
+        end0,
+        a1,
+        start1,
+        end1,
+      );
+
+      const centerAngle =
+        (a0 + a1) * 0.5;
+
+      const centerProfile =
+        this.profileForAngle(
+          origin,
+          heading + centerAngle,
+        );
+
+      if (
+        centerProfile.partialStart !==
+        null
+      ) {
+        const start =
+          centerProfile.partialStart;
+
+        const end =
+          centerProfile.partialEnd;
+
+        const length =
+          Math.max(
+            0,
+            end - start,
+          );
+
+        for (
+          let dash = 0;
+          dash < DASHES_PER_SEGMENT;
+          dash++
+        ) {
+          const t0 =
+            (dash * 2 + 0.35) /
+            (DASHES_PER_SEGMENT * 2);
+
+          const t1 =
+            Math.min(
+              1,
+              t0 + 0.11,
+            );
+
+          const d0 =
+            start +
+            length * t0;
+
+          const d1 =
+            start +
+            length * t1;
+
+          this.writeLine(
+            this.patternPositions,
+            patternOffset,
+            centerAngle,
+            d0,
+            d1,
+          );
+
+          patternOffset +=
+            DASH_FLOATS;
+        }
+      } else {
+        for (
+          let dash = 0;
+          dash < DASHES_PER_SEGMENT;
+          dash++
+        ) {
+          this.writeLine(
+            this.patternPositions,
+            patternOffset,
+            centerAngle,
+            0,
+            0,
+          );
+
+          patternOffset +=
+            DASH_FLOATS;
+        }
+      }
+
+      const visible0 =
+        p0.visibleEnd;
+
+      const visible1 =
+        p1.visibleEnd;
+
+      this.writeTriangle(
+        this.alertPositions,
+        i * TRIANGLE_FLOATS,
+        a0,
+        Math.min(
+          alertRadius,
+          visible0,
+        ),
+        a1,
+        Math.min(
+          alertRadius,
+          visible1,
+        ),
+      );
+
+      const waveOffset =
+        i * 6;
+
+      if (
+        hot > 0.01 &&
+        alertRadius <
+          visible0 - 0.03 &&
+        alertRadius <
+          visible1 - 0.03
+      ) {
+        this.writeArcSegment(
+          this.wavePositions,
+          waveOffset,
+          a0,
+          a1,
+          alertRadius,
+        );
+      } else {
+        this.writeArcSegment(
+          this.wavePositions,
+          waveOffset,
+          a0,
+          a1,
+          0,
+        );
+      }
+    }
+
+    for (const geometry of [
+      this.solidGeometry,
+      this.partialGeometry,
+      this.patternGeometry,
+      this.alertGeometry,
+      this.waveGeometry,
+    ]) {
+      geometry.attributes
+        .position.needsUpdate =
+        true;
+    }
+
+    this.solidGeometry
+      .computeBoundingSphere();
+
+    this.partialGeometry
+      .computeBoundingSphere();
+
+    this.alertGeometry
+      .computeBoundingSphere();
+
+    this.group.rotation.y =
+      heading;
+
+    this.alertMesh.visible =
+      hot > 0.01;
+
+    this.waveLines.visible =
+      hot > 0.01 &&
+      hot < 0.999;
+
+    this.alertMaterial.opacity =
+      this.agent.state ===
+        'chase'
+        ? 0.26
+        : 0.12 + hot * 0.08;
   }
 
-  distanceForAngle(
+  profileForAngle(
     origin,
     worldAngle,
   ) {
@@ -220,14 +538,119 @@ export class VisionConeVisual {
         ),
       );
 
-    // This is a floor-projected readability aid, not a ray toward the
-    // current player's eye. Any meaningful sight cover truncates the
-    // painted cone so the player can read safe shadow regions directly.
     return this.collision
-      .projectedSightDistanceAlongRay(
+      .projectedSightProfileAlongRay(
         origin,
         direction,
         this.radius,
       );
+  }
+
+  point(angle, distance) {
+    return [
+      Math.sin(angle) *
+        distance,
+      0,
+      Math.cos(angle) *
+        distance,
+    ];
+  }
+
+  writeTriangle(
+    target,
+    offset,
+    a0,
+    d0,
+    a1,
+    d1,
+  ) {
+    const p0 =
+      this.point(a0, d0);
+
+    const p1 =
+      this.point(a1, d1);
+
+    target.set(
+      [
+        0, 0, 0,
+        ...p0,
+        ...p1,
+      ],
+      offset,
+    );
+  }
+
+  writeQuad(
+    target,
+    offset,
+    a0,
+    start0,
+    end0,
+    a1,
+    start1,
+    end1,
+  ) {
+    const s0 =
+      this.point(a0, start0);
+    const e0 =
+      this.point(a0, end0);
+    const s1 =
+      this.point(a1, start1);
+    const e1 =
+      this.point(a1, end1);
+
+    target.set(
+      [
+        ...s0,
+        ...e0,
+        ...e1,
+        ...s0,
+        ...e1,
+        ...s1,
+      ],
+      offset,
+    );
+  }
+
+  writeLine(
+    target,
+    offset,
+    angle,
+    d0,
+    d1,
+  ) {
+    const p0 =
+      this.point(angle, d0);
+    const p1 =
+      this.point(angle, d1);
+
+    target.set(
+      [
+        ...p0,
+        ...p1,
+      ],
+      offset,
+    );
+  }
+
+  writeArcSegment(
+    target,
+    offset,
+    a0,
+    a1,
+    distance,
+  ) {
+    const p0 =
+      this.point(a0, distance);
+    const p1 =
+      this.point(a1, distance);
+
+    target.set(
+      [
+        ...p0,
+        ...p1,
+      ],
+      offset,
+    );
   }
 }
