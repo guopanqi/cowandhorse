@@ -234,24 +234,6 @@ button, input { font: inherit; }
   line-height: .9;
 }
 
-.manager-line {
-  margin: 0 0 42px;
-  color: #65665f;
-  font-size: 14px;
-}
-
-.logo-target {
-  width: 90px;
-  height: 58px;
-  border: 0;
-  background: #bd3f35;
-  color: white;
-  font-size: 20px;
-  font-weight: 900;
-  cursor: pointer;
-  transition: transform .09s ease-out;
-}
-
 .minigame-meta {
   display: flex;
   justify-content: space-between;
@@ -291,38 +273,6 @@ button, input { font: inherit; }
   font-size: 18px;
   font-weight: 700;
   color: #44463f;
-}
-
-.meeting-button {
-  min-width: 150px;
-  padding: 13px 20px;
-  border: 0;
-  background: #343a38;
-  color: white;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.meeting-button:disabled {
-  opacity: .38;
-  cursor: default;
-}
-
-.meeting-progress {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 26px;
-}
-
-.meeting-progress i {
-  width: 42px;
-  height: 5px;
-  background: rgba(0,0,0,.12);
-}
-
-.meeting-progress i.done {
-  background: #bd3f35;
 }
 
 
