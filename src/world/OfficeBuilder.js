@@ -639,30 +639,102 @@ export class OfficeBuilder {
       this.materials.dark,
     );
 
-    this.box(
-      'ElevatorDoor',
-      [2.5, 2.35, 0.08],
-      [x, 1.18, -7.86],
+    this.elevatorLeftDoor = this.box(
+      'ElevatorDoorLeft',
+      [1.22, 2.35, 0.08],
+      [x - 0.62, 1.18, -7.86],
       this.materials.elevator,
     );
 
-    const glow = new THREE.Mesh(
-      new THREE.RingGeometry(
-        0.68,
-        0.78,
-        36,
-      ),
-      new THREE.MeshBasicMaterial({
-        color: 0xf1b666,
-        transparent: true,
-        opacity: 0.8,
-        side: THREE.DoubleSide,
-      }),
+    this.elevatorRightDoor = this.box(
+      'ElevatorDoorRight',
+      [1.22, 2.35, 0.08],
+      [x + 0.62, 1.18, -7.86],
+      this.materials.elevator,
     );
 
-    glow.rotation.x = -Math.PI / 2;
-    glow.position.set(x, 0.02, z);
-    this.group.add(glow);
+    this.elevatorDoorBaseX = x;
+
+    this.extractionGlow =
+      new THREE.Mesh(
+        new THREE.RingGeometry(
+          0.68,
+          0.78,
+          36,
+        ),
+        new THREE.MeshBasicMaterial({
+          color: 0xf1b666,
+          transparent: true,
+          opacity: 0.48,
+          side: THREE.DoubleSide,
+        }),
+      );
+
+    this.extractionGlow.rotation.x =
+      -Math.PI / 2;
+
+    this.extractionGlow.position.set(
+      x,
+      0.02,
+      z,
+    );
+
+    this.group.add(
+      this.extractionGlow,
+    );
+  }
+
+  setExtractionState(
+    state,
+    progress = 0,
+  ) {
+    if (!this.extractionGlow) {
+      return;
+    }
+
+    const ready =
+      state === 'ready';
+
+    this.extractionGlow.material.color.setHex(
+      ready
+        ? 0x77c995
+        : state === 'calling'
+          ? 0xf4c56d
+          : 0xf1b666,
+    );
+
+    this.extractionGlow.material.opacity =
+      state === 'calling'
+        ? 0.48 + progress * 0.42
+        : ready
+          ? 0.92
+          : 0.48;
+
+    const open =
+      ready
+        ? 1
+        : state === 'calling'
+          ? Math.max(
+              0,
+              (progress - 0.82) /
+                0.18,
+            )
+          : 0;
+
+    if (
+      this.elevatorLeftDoor &&
+      this.elevatorRightDoor
+    ) {
+      this.elevatorLeftDoor.position.x =
+        this.elevatorDoorBaseX -
+        0.62 -
+        open * 0.9;
+
+      this.elevatorRightDoor.position.x =
+        this.elevatorDoorBaseX +
+        0.62 +
+        open * 0.9;
+    }
   }
 
   addAmbientDetails() {
