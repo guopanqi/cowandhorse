@@ -8,19 +8,14 @@ export class OfficeRoutine {
   ) {
     this.nodes = nodes.map(node => ({
       ...node,
-      point: new THREE.Vector3(
-        ...node.position,
-      ),
+      point: new THREE.Vector3(...node.position),
       facingVector: node.facing
-        ? new THREE.Vector3(
-            ...node.facing,
-          ).normalize()
+        ? new THREE.Vector3(...node.facing).normalize()
         : null,
     }));
 
     this.speed = speed;
     this.loop = loop;
-
     this.index = 0;
     this.waitRemaining = 0;
     this.arrived = false;
@@ -44,82 +39,49 @@ export class OfficeRoutine {
 
     if (!node) {
       return {
-        move: new THREE.Vector3(),
+        target: null,
         action: 'idle',
         facing: null,
-        ignoreCollision: false,
       };
     }
 
-    const delta =
-      node.point.clone().sub(position);
-    delta.y = 0;
+    const distance = node.point.distanceTo(position);
 
-    const distance = delta.length();
-
-    if (
-      !this.arrived &&
-      distance > 0.12
-    ) {
-      const direction =
-        delta.normalize();
-
+    if (!this.arrived && distance > 0.18) {
       return {
-        move:
-          direction.clone().multiplyScalar(
-            Math.min(
-              distance,
-              this.speed * dt,
-            ),
-          ),
+        target: node.point,
         action: 'walk',
-        facing: direction,
-        ignoreCollision:
-          !!node.ignoreCollision,
+        facing: null,
       };
     }
 
     if (!this.arrived) {
       this.arrived = true;
-      this.waitRemaining =
-        node.duration ?? 0;
+      this.waitRemaining = node.duration ?? 0;
     }
 
     if (this.waitRemaining > 0) {
-      this.waitRemaining =
-        Math.max(
-          0,
-          this.waitRemaining - dt,
-        );
+      this.waitRemaining = Math.max(
+        0,
+        this.waitRemaining - dt,
+      );
 
       return {
-        move: new THREE.Vector3(),
-        action:
-          node.action ?? 'idle',
-        facing:
-          node.facingVector,
-        ignoreCollision:
-          !!node.ignoreCollision,
+        target: null,
+        action: node.action ?? 'idle',
+        facing: node.facingVector,
       };
     }
 
-    const finalAction = {
-      move: new THREE.Vector3(),
-      action:
-        node.action ?? 'idle',
-      facing:
-        node.facingVector,
-      ignoreCollision:
-        !!node.ignoreCollision,
+    const finishedAction = {
+      target: null,
+      action: node.action ?? 'idle',
+      facing: node.facingVector,
     };
 
-    const nextIndex =
-      this.index + 1;
+    const next = this.index + 1;
 
-    if (
-      nextIndex >=
-      this.nodes.length
-    ) {
+    if (next >= this.nodes.length) {
       if (this.loop) {
         this.index = 0;
         this.arrived = false;
@@ -127,10 +89,10 @@ export class OfficeRoutine {
         this.completed = true;
       }
     } else {
-      this.index = nextIndex;
+      this.index = next;
       this.arrived = false;
     }
 
-    return finalAction;
+    return finishedAction;
   }
 }
