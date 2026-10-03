@@ -101,7 +101,7 @@ export const officeLevel = {
       { id: 'E7', position: [3.2, 0, -4.1] },
 
       { id: 'MDA', position: [4.05, 0, -2.15] },
-      { id: 'MDB', position: [5.65, 0, -2.15] },
+      { id: 'MDB', position: [6.05, 0, -2.15] },
       { id: 'MD', position: [6.55, 0, -2.68] },
       { id: 'MI', position: [6.55, 0, -3.58] },
 
