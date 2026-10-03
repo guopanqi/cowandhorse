@@ -243,7 +243,7 @@ export class OfficeBuilder {
 
     this.addDesk('StartNeighbor', -3.8, 6.1, 2.2, 0.95, 1.02);
 
-    this.addTallCover('StartFiles', -4.55, 4.0, 0.9, 1.3);
+    this.addTallCover('StartFiles', -4.8, 3.7, 0.9, 1.2);
 
     this.box(
       'WestPrinter',
@@ -273,9 +273,8 @@ export class OfficeBuilder {
       { cast: false },
     );
 
-    // Small hard cover at the north side creates S2 without blocking either flank.
-    this.addTallCover('S2FilesWest', -1.95, -1.95, 0.75, 1.0);
-    this.addTallCover('S2FilesEast', 1.95, -1.95, 0.75, 1.0);
+    // The core itself is the S2 landmark. Keep its north edge open enough
+    // for both loops to recombine without turning cover into a choke point.
   }
 
   addTeamArea() {
@@ -399,7 +398,7 @@ export class OfficeBuilder {
 
   addBackHall() {
     // Hard cover hides the elevator approach until the executive ring is completed.
-    this.addTallCover('BackHallFiles', 4.25, -5.2, 1.0, 1.35);
+    this.addTallCover('BackHallFiles', 3.45, -5.05, 0.9, 1.15);
 
     this.box(
       'BackHallBench',
