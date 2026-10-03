@@ -1,9 +1,14 @@
 export const officeLevel = {
-  bounds: { minX: -10.5, maxX: 10.5, minZ: -8.5, maxZ: 8.5 },
+  bounds: {
+    minX: -10.5,
+    maxX: 10.5,
+    minZ: -8.5,
+    maxZ: 8.5,
+  },
 
-  playerSpawn: [0, 0, 6.72],
+  playerSpawn: [0, 0, 6.85],
   prepZone: {
-    center: [0, 0, 6.72],
+    center: [0, 0, 6.85],
     radius: 1.75,
   },
 
