@@ -8,6 +8,7 @@ import { OfficeLevel } from '../world/OfficeLevel.js';
 import { LevelLoader } from '../levels/LevelLoader.js';
 import { EditorSession } from '../editor/EditorSession.js';
 import { EditorController } from '../editor/EditorController.js';
+import { PlaytestRecorder } from '../editor/PlaytestRecorder.js';
 import { FollowCamera } from '../presentation/FollowCamera.js';
 import { Hud } from '../presentation/Hud.js';
 import { WorldBubbleLayer } from '../presentation/WorldBubbleLayer.js';
@@ -107,6 +108,9 @@ export class Game {
           this.levelLoader,
       });
 
+    this.playtestRecorder =
+      new PlaytestRecorder();
+
     const params =
       new URLSearchParams(
         window.location.search,
@@ -199,6 +203,8 @@ export class Game {
           this.editorSession,
         loader:
           this.levelLoader,
+        recorder:
+          this.playtestRecorder,
 
         onPlay: () =>
           this.enterPlayMode(),
@@ -349,6 +355,9 @@ export class Game {
       return;
     }
 
+    this.playtestRecorder
+      ?.finish?.();
+
     this.mode = 'edit';
     this.phase = 'editor';
 
@@ -424,6 +433,11 @@ export class Game {
     this.phase = 'prep';
     this.lastTime =
       performance.now();
+
+    this.playtestRecorder.start(
+      this.editorSession.level.id,
+      this.level.player.position,
+    );
 
     this.hud?.announce?.(
       '17:59:50',
@@ -540,6 +554,16 @@ export class Game {
     }
 
     this.minigames.update(dt);
+
+    if (
+      this.phase === 'prep' ||
+      this.phase === 'escape'
+    ) {
+      this.playtestRecorder.update(
+        dt,
+        this.level.player.position,
+      );
+    }
 
     this.camera.update(
       this.level.player
@@ -666,6 +690,7 @@ export class Game {
     }
 
     this.phase = 'success';
+    this.playtestRecorder.finish();
 
     this.hud.showResult(
       '准点逃生',
@@ -682,6 +707,7 @@ export class Game {
     }
 
     this.phase = 'failure';
+    this.playtestRecorder.finish();
     this.capture.reset();
     this.minigames.stop();
 
