@@ -279,9 +279,9 @@ export class OfficeBuilder {
 
   addTeamArea() {
     // West side: denser, lower cover and stronger cubicle identity.
-    this.addDesk('TeamW1', -7.35, 3.95, 2.25, 0.95, 1.12);
+    this.addDesk('TeamW1', -7.55, 3.95, 2.25, 0.95, 1.12);
     this.addDesk('TeamW2', -4.35, 2.6, 2.2, 0.95, 1.12);
-    this.addDesk('TeamW3', -7.0, 0.45, 2.25, 0.95, 1.12);
+    this.addDesk('TeamW3', -7.5, 0.45, 2.25, 0.95, 1.12);
     this.addDesk('TeamW4', -4.35, -0.35, 2.2, 0.95, 1.12);
 
     this.addTallCover('WestArchive', -8.65, -0.65, 0.8, 1.5);
@@ -400,13 +400,6 @@ export class OfficeBuilder {
     // Hard cover hides the elevator approach until the executive ring is completed.
     this.addTallCover('BackHallFiles', 3.45, -5.05, 0.9, 1.15);
 
-    this.box(
-      'BackHallBench',
-      [1.8, 0.62, 0.65],
-      [1.6, 0.32, -6.45],
-      this.materials.desk,
-      { collider: { movement: true, sight: true } },
-    );
   }
 
   addFinalLobby() {
