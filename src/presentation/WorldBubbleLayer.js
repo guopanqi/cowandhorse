@@ -50,6 +50,20 @@ export class WorldBubbleLayer {
     this.speech = null;
   }
 
+  clear() {
+    this.hideSpeech();
+
+    for (const entry of this.entries.values()) {
+      entry.element.remove();
+    }
+
+    this.entries.clear();
+  }
+
+  setVisible(value) {
+    this.root.style.display = value ? '' : 'none';
+  }
+
   update(agents) {
     for (const agent of agents) {
       const entry = this.ensureActivity(agent);
