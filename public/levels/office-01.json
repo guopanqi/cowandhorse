@@ -163,9 +163,17 @@
       {
         "id": "PRINT_A",
         "position": [
-          -9,
+          -9.15,
           0,
-          3.25
+          3
+        ]
+      },
+      {
+        "id": "PRINT_PRE",
+        "position": [
+          -8.35,
+          0,
+          3
         ]
       },
       {
@@ -515,10 +523,6 @@
         "PRINT_A"
       ],
       [
-        "PRINT_A",
-        "PRINT"
-      ],
-      [
         "PRINT",
         "PRINT_B"
       ],
@@ -673,6 +677,14 @@
       [
         "L2",
         "EV"
+      ],
+      [
+        "PRINT_A",
+        "PRINT_PRE"
+      ],
+      [
+        "PRINT_PRE",
+        "PRINT"
       ]
     ]
   },
