@@ -592,6 +592,11 @@ export class Game {
           .isCrouched,
       );
 
+    this.mobileControls
+      .setInteraction(
+        levelState.interaction,
+      );
+
     this.hud.update(
       {
         clock: this.clock,
@@ -610,6 +615,9 @@ export class Game {
         extraction:
           levelState
             .extraction,
+        interaction:
+          levelState
+            .interaction,
       },
       dt,
     );
