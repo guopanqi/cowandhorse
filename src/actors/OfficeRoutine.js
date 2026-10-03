@@ -5,7 +5,9 @@ export class OfficeRoutine {
     this.nodes = nodes.map(node => ({
       ...node,
       point: new THREE.Vector3(...node.position),
-      facingVector: node.facing ? new THREE.Vector3(...node.facing).normalize() : null,
+      facingVector: node.facing
+        ? new THREE.Vector3(...node.facing).normalize()
+        : null,
     }));
     this.speed = speed;
     this.index = 0;
@@ -26,7 +28,12 @@ export class OfficeRoutine {
   update(position, dt) {
     const node = this.currentNode;
     if (!node) {
-      return { move: new THREE.Vector3(), action: 'idle', facing: null };
+      return {
+        move: new THREE.Vector3(),
+        action: 'idle',
+        facing: null,
+        ignoreCollision: false,
+      };
     }
 
     const delta = node.point.clone().sub(position);
@@ -36,9 +43,12 @@ export class OfficeRoutine {
     if (!this.arrived && distance > 0.12) {
       const direction = delta.normalize();
       return {
-        move: direction.clone().multiplyScalar(Math.min(distance, this.speed * dt)),
+        move: direction.clone().multiplyScalar(
+          Math.min(distance, this.speed * dt),
+        ),
         action: 'walk',
         facing: direction,
+        ignoreCollision: !!node.ignoreCollision,
       };
     }
 
@@ -53,6 +63,7 @@ export class OfficeRoutine {
         move: new THREE.Vector3(),
         action: node.action ?? 'idle',
         facing: node.facingVector,
+        ignoreCollision: !!node.ignoreCollision,
       };
     }
 
@@ -63,6 +74,7 @@ export class OfficeRoutine {
       move: new THREE.Vector3(),
       action: node.action ?? 'idle',
       facing: node.facingVector,
+      ignoreCollision: !!node.ignoreCollision,
     };
   }
 }
