@@ -119,6 +119,14 @@ export class MobileControls {
 
   setVisible(value) {
     this.root.classList.toggle('visible', value);
+
+    if (!value) {
+      this.pointerId = null;
+      this.input.setVirtualAxis(0, 0);
+      this.input.setVirtualHeld('ShiftLeft', false);
+      this.stick.style.transform = 'translate(0px, 0px)';
+      this.sprint.classList.remove('active');
+    }
   }
 
   dispose() {
