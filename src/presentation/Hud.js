@@ -1,6 +1,15 @@
 export class Hud {
-  constructor(root) {
+  constructor(root, { onRestart = null } = {}) {
     this.root = root;
+    this.onRestart = onRestart;
+
+    this.onClick = event => {
+      if (event.target.closest('[data-restart]')) {
+        this.onRestart?.();
+      }
+    };
+
+    this.root.addEventListener('click', this.onClick);
 
     this.root.innerHTML = `
       <div class="hud">
@@ -235,7 +244,8 @@ export class Hud {
       <p class="eyebrow">END OF DAY</p>
       <h2>${title}</h2>
       <p>${detail}</p>
-      <span>按 R 再来一次</span>
+      <button class="restart-button" data-restart type="button">再来一次</button>
+      <span class="keyboard-restart">键盘按 R</span>
     `;
   }
 
