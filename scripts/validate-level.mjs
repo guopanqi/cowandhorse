@@ -51,7 +51,7 @@ for (const [a, b] of officeLevel.navigation.edges) {
   );
 }
 
-const centralRoute = ['S0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7'];
+const centralRoute = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7'];
 
 for (let i = 0; i < centralRoute.length - 1; i++) {
   const from = nodeById.get(centralRoute[i]);
@@ -78,8 +78,39 @@ const validatePoint = (point, label) => {
   return position;
 };
 
-validatePoint(officeLevel.playerSpawn, 'Player spawn');
-validatePoint(officeLevel.extraction.position, 'Extraction');
+const playerSpawn = validatePoint(
+  officeLevel.playerSpawn,
+  'Player spawn',
+);
+const extraction = validatePoint(
+  officeLevel.extraction.position,
+  'Extraction',
+);
+
+const firstCenterNode = nodeById.get('C1');
+const startPath = navigation.findPath(
+  playerSpawn,
+  firstCenterNode,
+);
+
+assert(
+  startPath.length > 0,
+  'Player cannot leave the workstation safe island through either side aisle',
+);
+
+const extractionPath = navigation.findPath(
+  nodeById.get('C6'),
+  extraction,
+);
+
+assert(
+  collision.canTraverseSegment(
+    nodeById.get('C6'),
+    extraction,
+    0.34,
+  ) || extractionPath.length > 0,
+  'Player cannot reach the elevator staging area',
+);
 
 for (const npc of officeLevel.npcs) {
   if (!npc.routine?.length) continue;
