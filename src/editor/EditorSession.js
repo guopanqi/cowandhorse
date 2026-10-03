@@ -6,6 +6,9 @@ const clone = value =>
 const DRAFT_PREFIX =
   'cowandhorse:level-draft:';
 
+const GITHUB_TOKEN_KEY =
+  'cowandhorse:github-token';
+
 function toBase64(text) {
   const bytes =
     new TextEncoder().encode(text);
@@ -56,6 +59,38 @@ export class EditorSession {
 
   markDirty() {
     this.dirty = true;
+  }
+
+  getRememberedGithubToken() {
+    return (
+      localStorage.getItem(
+        GITHUB_TOKEN_KEY,
+      ) ?? ''
+    );
+  }
+
+  rememberGithubToken(token) {
+    const value =
+      token?.trim();
+
+    if (!value) return;
+
+    localStorage.setItem(
+      GITHUB_TOKEN_KEY,
+      value,
+    );
+  }
+
+  forgetGithubToken() {
+    localStorage.removeItem(
+      GITHUB_TOKEN_KEY,
+    );
+  }
+
+  hasRememberedGithubToken() {
+    return Boolean(
+      this.getRememberedGithubToken(),
+    );
   }
 
   draftKey(id = this.level?.id) {
