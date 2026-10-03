@@ -22,7 +22,7 @@ export class PlayerController {
   get eyePosition() {
     return new THREE.Vector3(
       this.position.x,
-      this.isCrouched ? 0.82 : 1.68,
+      this.isCrouched ? 0.9 : 1.68,
       this.position.z,
     );
   }
