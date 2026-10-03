@@ -35,7 +35,11 @@ export class OfficeLevel {
       );
 
       const cone =
-        new VisionConeVisual(agent);
+        new VisionConeVisual(
+          agent,
+          this.collision,
+          this.player,
+        );
 
       scene.add(cone.mesh);
       scene.add(agent.visual.group);
