@@ -6,212 +6,194 @@ export const officeLevel = {
     maxZ: 8.5,
   },
 
-  playerSpawn: [0, 0, 6.65],
+  // V3 deliberately breaks the old bottom-center -> top-center axis.
+  playerSpawn: [-7.35, 0, 6.65],
 
   prepZone: {
-    center: [0, 0, 6.65],
+    center: [-7.35, 0, 6.65],
     radius: 1.75,
   },
 
   extraction: {
-    position: [0, 0, -7.45],
+    position: [7.25, 0, -7.35],
     radius: 0.95,
     callSeconds: 3.8,
   },
 
   levelDesign: {
+    version: 'M3-V3-diagonal-core',
     safeIslands: {
-      start: [0, 0, 6.65],
-      s1: [0, 0, 4.55],
-      s2: [0, 0, 0.25],
-      s3: [0, 0, -3.8],
+      start: [-7.35, 0, 6.65],
+      s1: [-4.1, 0, 4.8],
+      s2: [0, 0, -1.45],
+      s3: [5.05, 0, -5.65],
     },
-
     encounters: {
       a: {
-        name: '离开工位',
-        purpose: '从安全工位观察组长与经理，再从桌子两侧离开。',
+        name: '工位出口',
+        purpose: '从左下角工位离开，第一次读组长的打印路线。',
       },
       b: {
-        name: '团队办公区',
-        purpose: '第一组双环。左侧低掩体，右侧开放视线，中央是短而暴露的切线。',
+        name: '服务核心环',
+        purpose: '围绕不透明的储物/服务器核心走西侧格子间、东侧协作区或南北切线。',
       },
       c: {
-        name: '管理层走廊',
-        purpose: '第二组双环。老板办公室与会议室夹住路径，S3 是最后观察岛。',
+        name: '管理层夹层',
+        purpose: '老板办公室与玻璃会议室形成第二个环，路线在后方重新汇合。',
       },
       d: {
-        name: '电梯前厅',
-        purpose: '呼叫电梯后等待，并处理老板临时检查出口的反应事件。',
+        name: '右上电梯厅',
+        purpose: '出口不在视线正前方；呼叫电梯后老板会切入最终大厅。',
       },
     },
   },
 
   navigation: {
     nodes: [
-      { id: 'P', position: [0, 0, 6.65] },
-      { id: 'PL', position: [-1.65, 0, 6.65] },
-      { id: 'PR', position: [1.65, 0, 6.65] },
-      { id: 'SL', position: [-1.65, 0, 4.65] },
-      { id: 'SR', position: [1.65, 0, 4.65] },
-      { id: 'S1', position: [0, 0, 4.55] },
+      // Start pod.
+      { id: 'P', position: [-7.35, 0, 6.65] },
+      { id: 'PL', position: [-8.8, 0, 6.55] },
+      { id: 'PR', position: [-5.9, 0, 6.55] },
+      { id: 'S1L', position: [-8.45, 0, 4.85] },
+      { id: 'S1R', position: [-5.35, 0, 4.85] },
+      { id: 'S1', position: [-4.1, 0, 4.8] },
 
-      { id: 'S1FL', position: [-1.25, 0, 4.5] },
-      { id: 'S1FR', position: [1.25, 0, 4.5] },
-      { id: 'C1L', position: [-1.25, 0, 2.7] },
-      { id: 'C1R', position: [1.25, 0, 2.7] },
-      { id: 'C2', position: [0, 0, 1.35] },
+      // First loop around service core.
+      { id: 'W1', position: [-5.8, 0, 3.3] },
+      { id: 'W2', position: [-5.8, 0, 1.15] },
+      { id: 'W3', position: [-5.2, 0, -0.85] },
+      { id: 'W4', position: [-2.7, 0, -1.45] },
 
-      { id: 'W1', position: [-3.0, 0, 4.25] },
-      { id: 'W2', position: [-5.15, 0, 3.25] },
-      { id: 'W3', position: [-5.25, 0, 1.15] },
-      { id: 'W4A', position: [-5.15, 0, -0.55] },
-      { id: 'W4B', position: [-3.0, 0, -0.55] },
+      { id: 'E0', position: [-2.4, 0, 4.9] },
+      { id: 'E1', position: [2.4, 0, 4.9] },
+      { id: 'E2', position: [4.3, 0, 3.2] },
+      { id: 'E3', position: [4.35, 0, 1.0] },
+      { id: 'E4', position: [3.1, 0, -1.35] },
 
-      { id: 'WP1', position: [-8.35, 0, 3.2] },
-      { id: 'WP', position: [-8.45, 0, 5.85] },
+      { id: 'PRINT', position: [-8.7, 0, 2.2] },
+      { id: 'TEA', position: [8.25, 0, 2.55] },
 
-      { id: 'E1', position: [3.0, 0, 4.25] },
-      { id: 'E2', position: [5.15, 0, 3.25] },
-      { id: 'E3', position: [5.35, 0, 1.05] },
-      { id: 'E4', position: [3.15, 0, -0.45] },
+      { id: 'S2W', position: [-1.55, 0, -1.45] },
+      { id: 'S2', position: [0, 0, -1.45] },
+      { id: 'S2E', position: [1.55, 0, -1.45] },
 
-      { id: 'TEA1', position: [7.25, 0, 3.45] },
-      { id: 'TEA', position: [8.2, 0, 4.15] },
+      // Second loop around executive rooms.
+      { id: 'BW0', position: [-2.7, 0, -2.35] },
+      { id: 'BW1', position: [-7.4, 0, -2.35] },
+      { id: 'BW2', position: [-7.45, 0, -5.65] },
+      { id: 'BW3', position: [-3.25, 0, -5.85] },
 
-      { id: 'S2', position: [0, 0, 0.25] },
-      { id: 'S2FL', position: [-1.3, 0, 0.2] },
-      { id: 'S2FR', position: [1.3, 0, 0.2] },
-      { id: 'S2L', position: [-1.3, 0, -1.45] },
-      { id: 'S2R', position: [1.3, 0, -1.45] },
+      { id: 'BD', position: [-4.75, 0, -2.35] },
+      { id: 'BI', position: [-4.75, 0, -3.55] },
 
-      { id: 'W5', position: [-4.2, 0, -1.3] },
-      { id: 'W6', position: [-3.98, 0, -3.05] },
-      { id: 'W6B', position: [-3.98, 0, -4.15] },
-      { id: 'W7', position: [-3.2, 0, -4.15] },
+      { id: 'C0', position: [-1.25, 0, -2.35] },
+      { id: 'C1', position: [-1.25, 0, -4.1] },
+      { id: 'C2', position: [-1.25, 0, -5.75] },
 
-      { id: 'BDA', position: [-4.05, 0, -2.15] },
-      { id: 'BDB', position: [-5.65, 0, -2.15] },
-      { id: 'BD', position: [-6.55, 0, -2.72] },
-      { id: 'BI', position: [-6.55, 0, -3.68] },
+      { id: 'ME0', position: [2.9, 0, -2.1] },
+      { id: 'ME1', position: [5.0, 0, -2.35] },
+      { id: 'ME2', position: [5.25, 0, -4.35] },
+      { id: 'ME3', position: [5.05, 0, -5.65] },
 
-      { id: 'E5', position: [4.2, 0, -1.3] },
-      { id: 'E6', position: [4.0, 0, -3.05] },
-      { id: 'E6B', position: [4.0, 0, -4.1] },
-      { id: 'E7', position: [3.2, 0, -4.1] },
+      { id: 'MD', position: [1.9, 0, -2.25] },
+      { id: 'MI', position: [1.9, 0, -3.45] },
 
-      { id: 'MDA', position: [4.05, 0, -2.15] },
-      { id: 'MDB', position: [6.05, 0, -2.15] },
-      { id: 'MD', position: [6.55, 0, -2.68] },
-      { id: 'MI', position: [6.55, 0, -3.58] },
+      { id: 'BACK0', position: [-1.25, 0, -5.75] },
+      { id: 'BACK1', position: [2.0, 0, -5.75] },
+      { id: 'S3', position: [5.05, 0, -5.65] },
 
-      { id: 'C3L', position: [-1.25, 0, -1.95] },
-      { id: 'C3R', position: [1.25, 0, -1.95] },
-      { id: 'C3', position: [0, 0, -2.45] },
-      { id: 'C4', position: [0, 0, -3.25] },
-
-      { id: 'S3', position: [0, 0, -3.8] },
-      { id: 'S3FL', position: [-1.45, 0, -3.9] },
-      { id: 'S3FR', position: [1.45, 0, -3.9] },
-      { id: 'S3L', position: [-1.45, 0, -5.25] },
-      { id: 'S3R', position: [1.45, 0, -5.25] },
-
-      { id: 'EL', position: [-1.35, 0, -6.35] },
-      { id: 'ER', position: [1.35, 0, -6.35] },
-      { id: 'EV', position: [0, 0, -7.05] },
+      // Final lobby bends right toward the elevator.
+      { id: 'L1', position: [6.35, 0, -5.95] },
+      { id: 'L2', position: [7.25, 0, -6.45] },
+      { id: 'EV', position: [7.25, 0, -7.15] },
     ],
 
     edges: [
+      // Start: two exits from the personal workstation.
       ['P', 'PL'],
-      ['PL', 'SL'],
-      ['SL', 'S1'],
+      ['PL', 'S1L'],
+      ['S1L', 'S1'],
 
       ['P', 'PR'],
-      ['PR', 'SR'],
-      ['SR', 'S1'],
+      ['PR', 'S1R'],
+      ['S1R', 'S1'],
 
+      // First loop west.
       ['S1', 'W1'],
       ['W1', 'W2'],
       ['W2', 'W3'],
-      ['W3', 'W4A'],
-      ['W4A', 'W4B'],
-      ['W4B', 'S2'],
+      ['W3', 'W4'],
+      ['W4', 'S2W'],
+      ['S2W', 'S2'],
 
-      ['W2', 'WP1'],
-      ['WP1', 'WP'],
+      // Printing branch gives the team lead an office-shaped loop.
+      ['W1', 'PRINT'],
+      ['PRINT', 'W2'],
 
-      ['S1', 'E1'],
+      // First loop east. It crosses below the service core, then wraps its east side.
+      ['S1', 'E0'],
+      ['E0', 'E1'],
       ['E1', 'E2'],
       ['E2', 'E3'],
       ['E3', 'E4'],
-      ['E4', 'S2'],
+      ['E4', 'S2E'],
+      ['S2E', 'S2'],
 
-      ['E2', 'TEA1'],
-      ['TEA1', 'TEA'],
+      ['E2', 'TEA'],
+      ['TEA', 'E3'],
 
-      ['S1', 'S1FL'],
-      ['S1', 'S1FR'],
-      ['S1FL', 'C1L'],
-      ['S1FR', 'C1R'],
-      ['C1L', 'C2'],
-      ['C1R', 'C2'],
-      ['C2', 'S2'],
+      // Short exposed cross-cut between the two sides, north of the service core.
+      ['W1', 'E0'],
 
-      ['S2', 'S2FL'],
-      ['S2FL', 'S2L'],
-      ['S2L', 'W5'],
-      ['W5', 'W6'],
-      ['W6', 'W6B'],
-      ['W6B', 'W7'],
-      ['W7', 'S3'],
+      // Second loop west, around the boss office.
+      ['S2', 'S2W'],
+      ['S2W', 'BW0'],
+      ['BW0', 'BW1'],
+      ['BW1', 'BW2'],
+      ['BW2', 'BW3'],
+      ['BW3', 'BACK0'],
 
-      ['W5', 'BDA'],
-      ['BDA', 'BDB'],
-      ['BDB', 'BD'],
+      ['BW0', 'BD'],
       ['BD', 'BI'],
 
-      ['S2', 'S2FR'],
-      ['S2FR', 'S2R'],
-      ['S2R', 'E5'],
-      ['E5', 'E6'],
-      ['E6', 'E6B'],
-      ['E6B', 'E7'],
-      ['E7', 'S3'],
+      // Second loop center, between boss office and meeting room.
+      ['S2', 'C0'],
+      ['C0', 'C1'],
+      ['C1', 'C2'],
+      ['C2', 'BACK0'],
 
-      ['E5', 'MDA'],
-      ['MDA', 'MDB'],
-      ['MDB', 'MD'],
+      // Second loop east, around meeting room / tea side.
+      ['S2', 'S2E'],
+      ['S2E', 'ME0'],
+      ['ME0', 'ME1'],
+      ['ME1', 'ME2'],
+      ['ME2', 'ME3'],
+
+      ['ME0', 'MD'],
       ['MD', 'MI'],
 
-      ['S2L', 'C3L'],
-      ['S2R', 'C3R'],
-      ['C3L', 'C3'],
-      ['C3R', 'C3'],
-      ['C3', 'C4'],
-      ['C4', 'S3'],
+      // Recombine behind the rooms.
+      ['BACK0', 'BACK1'],
+      ['BACK1', 'S3'],
+      ['ME3', 'S3'],
 
-      ['S3', 'S3FL'],
-      ['S3', 'S3FR'],
-      ['S3FL', 'S3L'],
-      ['S3FR', 'S3R'],
-      ['S3L', 'EL'],
-      ['S3R', 'ER'],
-      ['EL', 'EV'],
-      ['ER', 'EV'],
+      // Final lobby.
+      ['S3', 'L1'],
+      ['L1', 'L2'],
+      ['L2', 'EV'],
     ],
   },
 
   routeDesign: {
     firstRing: {
-      west: '低掩体较多，距离长，组长主要控制这里。',
-      center: '最短，但必须从 S1 文件柜侧面探出，并穿过组长与经理的交叉视野。',
-      east: '玻璃与开放空间较多，需要读经理去茶水区/会议室的节奏。',
+      west: '格子间与打印区。低遮挡多、路径更长，组长覆盖频繁。',
+      crosscut: '从 S1 沿服务核心南侧横切，最短，但容易进入两名领导的交叉视线。',
+      east: '协作区与茶水区。空间更开，经理的停留与转身决定窗口。',
     },
-
     secondRing: {
-      west: '贴近老板办公室，硬遮挡多，但老板偶尔会出门。',
-      center: '绕过 S2 文件柜后直切 S3，距离短、遮挡少。',
-      east: '绕会议室，路径较长，但能利用玻璃房边缘切断追逐视线。',
+      west: '绕老板办公室外墙，距离最长但硬遮挡多；老板出门时风险骤升。',
+      center: '老板办公室和会议室之间的窄长通道，最短也最暴露。',
+      east: '绕玻璃会议室与茶水侧，路线长但能利用拐角切断追逐。',
     },
   },
 
@@ -220,24 +202,30 @@ export const officeLevel = {
       npcId: 'boss',
       routine: [
         {
-          position: [-6.55, 0, -2.72],
+          position: [-4.75, 0, -2.35],
           action: 'walk',
           duration: 0,
         },
         {
-          position: [0, 0, -3.8],
+          position: [-1.25, 0, -4.1],
           action: 'inspect',
           duration: 1.2,
-          facing: [0, 0, -1],
+          facing: [1, 0, 0],
         },
         {
-          position: [0, 0, -6.35],
+          position: [5.05, 0, -5.65],
           action: 'check',
-          duration: 2.7,
+          duration: 1.4,
+          facing: [1, 0, -1],
+        },
+        {
+          position: [7.25, 0, -6.45],
+          action: 'inspect',
+          duration: 2.8,
           facing: [0, 0, -1],
         },
         {
-          position: [-6.55, 0, -2.72],
+          position: [-4.75, 0, -2.35],
           action: 'walk',
           duration: 0,
         },
@@ -263,34 +251,34 @@ export const officeLevel = {
 
       routine: [
         {
-          position: [-8.45, 0, 5.85],
+          position: [-8.7, 0, 2.2],
           action: 'print',
           duration: 1.8,
           facing: [-1, 0, 0],
         },
         {
-          position: [-5.15, 0, 3.25],
+          position: [-5.8, 0, 3.3],
           action: 'read',
-          duration: 1.4,
+          duration: 1.5,
           facing: [1, 0, 0],
         },
         {
-          position: [0, 0, 4.55],
+          position: [-4.1, 0, 4.8],
           action: 'inspect',
           duration: 4.0,
-          facing: [0, 0, 1],
+          facing: [-1, 0, 1],
         },
         {
-          position: [-5.25, 0, 1.15],
+          position: [-5.8, 0, 1.15],
           action: 'check',
           duration: 2.0,
           facing: [1, 0, 0],
         },
         {
-          position: [0, 0, 0.25],
+          position: [0, 0, -1.45],
           action: 'inspect',
           duration: 2.0,
-          facing: [0, 0, 1],
+          facing: [-1, 0, 1],
         },
       ],
     },
@@ -312,31 +300,31 @@ export const officeLevel = {
 
       routine: [
         {
-          position: [5.15, 0, 3.25],
+          position: [4.3, 0, 3.2],
           action: 'check',
           duration: 1.5,
           facing: [-1, 0, 0],
         },
         {
-          position: [0, 0, 1.35],
+          position: [0, 0, -1.45],
           action: 'inspect',
-          duration: 5.0,
+          duration: 4.8,
           facing: [0, 0, 1],
         },
         {
-          position: [8.2, 0, 4.15],
+          position: [8.25, 0, 2.55],
           action: 'tea',
           duration: 3.2,
           facing: [1, 0, 0],
         },
         {
-          position: [6.55, 0, -3.58],
+          position: [1.9, 0, -3.45],
           action: 'meeting',
-          duration: 4.4,
+          duration: 4.3,
           facing: [0, 0, -1],
         },
         {
-          position: [0, 0, -2.45],
+          position: [-1.25, 0, -4.1],
           action: 'inspect',
           duration: 2.2,
           facing: [0, 0, -1],
@@ -361,31 +349,31 @@ export const officeLevel = {
 
       routine: [
         {
-          position: [-6.55, 0, -3.68],
+          position: [-4.75, 0, -3.55],
           action: 'read',
           duration: 8.2,
           facing: [0, 0, -1],
         },
         {
-          position: [-6.55, 0, -2.72],
+          position: [-4.75, 0, -2.35],
           action: 'inspect',
-          duration: 1.6,
+          duration: 1.5,
           facing: [1, 0, 0],
         },
         {
-          position: [-3.2, 0, -4.15],
+          position: [-1.25, 0, -4.1],
           action: 'check',
           duration: 2.0,
           facing: [1, 0, 0],
         },
         {
-          position: [0, 0, -3.8],
+          position: [5.05, 0, -5.65],
           action: 'inspect',
-          duration: 2.2,
-          facing: [0, 0, -1],
+          duration: 2.0,
+          facing: [1, 0, -1],
         },
         {
-          position: [-6.55, 0, -2.72],
+          position: [-4.75, 0, -2.35],
           action: 'walk',
           duration: 0,
         },
