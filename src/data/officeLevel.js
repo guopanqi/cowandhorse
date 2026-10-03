@@ -97,7 +97,6 @@ export const officeLevel = {
       ['BD', 'BI'],
       ['W10', 'C6'],
 
-      ['C1', 'W0'],
       ['C2', 'W2'],
       ['C3', 'W4'],
       ['C4', 'W6'],
