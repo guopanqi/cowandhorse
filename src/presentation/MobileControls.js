@@ -10,6 +10,9 @@ export class MobileControls {
         </div>
 
         <div class="touch-actions">
+          <button class="touch-action touch-interact" data-interact type="button" hidden>
+            <span>使用</span>
+          </button>
           <button class="touch-action touch-crouch" data-crouch type="button">
             <span>蹲伏</span>
           </button>
@@ -22,6 +25,7 @@ export class MobileControls {
 
     this.joystick = this.root.querySelector('[data-joystick]');
     this.stick = this.root.querySelector('[data-stick]');
+    this.interact = this.root.querySelector('[data-interact]');
     this.crouch = this.root.querySelector('[data-crouch]');
     this.sprint = this.root.querySelector('[data-sprint]');
 
@@ -32,6 +36,11 @@ export class MobileControls {
     this.onJoystickDown = this.onJoystickDown.bind(this);
     this.onJoystickMove = this.onJoystickMove.bind(this);
     this.onJoystickUp = this.onJoystickUp.bind(this);
+
+    this.onInteract = event => {
+      event.preventDefault();
+      this.input.pressVirtual('KeyE');
+    };
 
     this.onCrouch = event => {
       event.preventDefault();
@@ -56,6 +65,7 @@ export class MobileControls {
     window.addEventListener('pointerup', this.onJoystickUp);
     window.addEventListener('pointercancel', this.onJoystickUp);
 
+    this.interact.addEventListener('pointerdown', this.onInteract);
     this.crouch.addEventListener('pointerdown', this.onCrouch);
     this.sprint.addEventListener('pointerdown', this.onSprintDown);
     this.sprint.addEventListener('pointerup', this.onSprintUp);
@@ -112,6 +122,28 @@ export class MobileControls {
     this.input.setVirtualAxis(x, z);
   }
 
+  setInteraction(state) {
+    const visible =
+      Boolean(state?.prompt);
+
+    this.interact.hidden =
+      !visible;
+
+    this.interact.classList.toggle(
+      'active',
+      Boolean(state?.active),
+    );
+
+    this.interact.querySelector('span').textContent =
+      state?.actionLabel ?? '使用';
+
+    this.crouch.disabled =
+      Boolean(state?.active);
+
+    this.sprint.disabled =
+      Boolean(state?.active);
+  }
+
   setCrouched(value) {
     this.crouch.classList.toggle('active', value);
     this.crouch.querySelector('span').textContent = value ? '站起' : '蹲伏';
@@ -137,6 +169,7 @@ export class MobileControls {
     window.removeEventListener('pointermove', this.onJoystickMove);
     window.removeEventListener('pointerup', this.onJoystickUp);
     window.removeEventListener('pointercancel', this.onJoystickUp);
+    this.interact.removeEventListener('pointerdown', this.onInteract);
     this.crouch.removeEventListener('pointerdown', this.onCrouch);
     this.sprint.removeEventListener('pointerdown', this.onSprintDown);
     this.sprint.removeEventListener('pointerup', this.onSprintUp);
