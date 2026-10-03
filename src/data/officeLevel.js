@@ -1,29 +1,16 @@
 export const officeLevel = {
   bounds: { minX: -10.5, maxX: 10.5, minZ: -8.5, maxZ: 8.5 },
-  playerSpawn: [0, 0, 6.4],
-  extraction: { position: [0, 0, -7.6], radius: 1.15 },
 
-  blockers: [
-    [-10.5, -10.0, -8.5, 8.5],
-    [10.0, 10.5, -8.5, 8.5],
-    [-10.5, 10.5, -8.5, -8.0],
-    [-10.5, 10.5, 8.0, 8.5],
+  playerSpawn: [0, 0, 6.72],
+  prepZone: {
+    center: [0, 0, 6.72],
+    radius: 1.75,
+  },
 
-    [-8.8, -4.7, -7.0, -3.7],
-    [4.7, 8.8, -7.0, -3.7],
-
-    [-8.7, -5.5, -1.1, 1.1],
-    [-3.7, -0.5, -1.1, 1.1],
-    [1.2, 4.4, -1.1, 1.1],
-    [6.1, 9.0, -1.1, 1.1],
-
-    [-8.7, -5.5, 3.0, 5.0],
-    [-3.7, -0.5, 3.0, 5.0],
-    [1.2, 4.4, 3.0, 5.0],
-    [6.1, 9.0, 3.0, 5.0],
-
-    [-2.1, 2.1, -5.8, -4.5]
-  ],
+  extraction: {
+    position: [0, 0, -7.55],
+    radius: 1.1,
+  },
 
   npcs: [
     {
@@ -33,13 +20,46 @@ export const officeLevel = {
       penaltyMinutes: 10,
       energyCost: 8,
       minigame: 'logo-bigger',
-      speed: 1.65,
-      visionDistance: 4.7,
+
+      speed: 1.45,
+      chaseSpeed: 2.8,
+      chaseMemory: 2.8,
+      visionDistance: 4.8,
       visionAngle: 62,
-      patrol: [
-        [-6.0, 0, 2.1], [-4.6, 0, -2.2], [-1.4, 0, -2.2], [-1.4, 0, 1.9]
-      ]
+
+      routine: [
+        {
+          position: [-4.65, 0, 2.0],
+          action: 'check',
+          duration: 2.4,
+          facing: [-1, 0, 0],
+        },
+        {
+          position: [-9.1, 0, 2.0],
+          action: 'walk',
+          duration: 0,
+        },
+        {
+          position: [-9.1, 0, 5.55],
+          action: 'print',
+          duration: 3.2,
+          facing: [0, 0, 1],
+        },
+        {
+          position: [-9.1, 0, 2.0],
+          action: 'walk',
+          duration: 0,
+        },
+        {
+          position: [-7.1, 0, 1.08],
+          action: 'sit',
+          duration: 4.4,
+          facing: [0, 0, -1],
+          ignoreCollision: true,
+        },
+      ],
     },
+
     {
       id: 'manager',
       role: '部门经理',
@@ -47,13 +67,50 @@ export const officeLevel = {
       penaltyMinutes: 30,
       energyCost: 18,
       minigame: 'quick-sync',
-      speed: 1.45,
+
+      speed: 1.35,
+      chaseSpeed: 2.65,
+      chaseMemory: 3.2,
       visionDistance: 5.6,
-      visionAngle: 72,
-      patrol: [
-        [6.8, 0, 2.0], [5.2, 0, -2.2], [2.0, 0, -2.2], [2.0, 0, 2.0]
-      ]
+      visionAngle: 70,
+
+      routine: [
+        {
+          position: [5.15, 0, 2.0],
+          action: 'inspect',
+          duration: 2.8,
+          facing: [-1, 0, 0],
+        },
+        {
+          position: [9.15, 0, 2.0],
+          action: 'walk',
+          duration: 0,
+        },
+        {
+          position: [9.15, 0, 5.75],
+          action: 'check',
+          duration: 3.0,
+          facing: [0, 0, 1],
+        },
+        {
+          position: [9.15, 0, 2.0],
+          action: 'walk',
+          duration: 0,
+        },
+        {
+          position: [5.05, 0, -2.25],
+          action: 'walk',
+          duration: 0,
+        },
+        {
+          position: [6.75, 0, -3.25],
+          action: 'meeting',
+          duration: 4.0,
+          facing: [0, 0, -1],
+        },
+      ],
     },
+
     {
       id: 'boss',
       role: '老板',
@@ -61,13 +118,50 @@ export const officeLevel = {
       penaltyMinutes: 120,
       energyCost: 30,
       minigame: 'quick-sync',
-      speed: 1.2,
+
+      speed: 1.15,
+      chaseSpeed: 2.45,
+      chaseMemory: 3.8,
       visionDistance: 6.2,
-      visionAngle: 78,
-      activeAfterSeconds: 18,
-      patrol: [
-        [-6.8, 0, -5.2], [-2.5, 0, -3.1], [2.7, 0, -3.1], [6.8, 0, -5.2]
-      ]
-    }
-  ]
+      visionAngle: 76,
+
+      routine: [
+        {
+          position: [-6.75, 0, -4.55],
+          action: 'sit',
+          duration: 9.0,
+          facing: [0, 0, -1],
+          ignoreCollision: true,
+        },
+        {
+          position: [-6.75, 0, -3.2],
+          action: 'inspect',
+          duration: 2.8,
+          facing: [0, 0, 1],
+        },
+        {
+          position: [-4.0, 0, -2.8],
+          action: 'check',
+          duration: 3.4,
+          facing: [1, 0, 0],
+        },
+        {
+          position: [0, 0, -2.8],
+          action: 'inspect',
+          duration: 3.8,
+          facing: [0, 0, 1],
+        },
+        {
+          position: [-4.0, 0, -2.8],
+          action: 'walk',
+          duration: 0,
+        },
+        {
+          position: [-6.75, 0, -3.2],
+          action: 'walk',
+          duration: 0,
+        },
+      ],
+    },
+  ],
 };
