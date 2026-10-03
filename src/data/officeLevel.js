@@ -32,8 +32,8 @@ export const officeLevel = {
       { id: 'C7', position: [0, 0, -6.9] },
 
       { id: 'W0', position: [-2.6, 0, 5.25] },
-      { id: 'W1', position: [-4.9, 0, 5.25] },
-      { id: 'WP', position: [-8.55, 0, 5.65] },
+      { id: 'W1', position: [-4.9, 0, 5.8] },
+      { id: 'WP', position: [-8.55, 0, 5.8] },
       { id: 'W2', position: [-2.6, 0, 3.2] },
       { id: 'W3', position: [-5.0, 0, 3.2] },
       { id: 'W4', position: [-2.6, 0, 1.2] },
@@ -44,11 +44,11 @@ export const officeLevel = {
       { id: 'W9', position: [-5.0, 0, -3.7] },
       { id: 'W10', position: [-2.6, 0, -5.6] },
       { id: 'BD', position: [-6.55, 0, -2.95] },
-      { id: 'BI', position: [-6.55, 0, -4.85] },
+      { id: 'BI', position: [-6.55, 0, -3.75] },
 
       { id: 'E0', position: [2.6, 0, 5.2] },
       { id: 'E1', position: [5.15, 0, 5.2] },
-      { id: 'TEA', position: [8.35, 0, 4.8] },
+      { id: 'TEA', position: [8.2, 0, 4.2] },
       { id: 'E2', position: [2.6, 0, 3.2] },
       { id: 'E3', position: [5.15, 0, 3.2] },
       { id: 'E4', position: [2.6, 0, 1.2] },
@@ -57,7 +57,7 @@ export const officeLevel = {
       { id: 'E7', position: [5.15, 0, -1.2] },
       { id: 'E8', position: [2.6, 0, -3.0] },
       { id: 'MD', position: [6.55, 0, -2.75] },
-      { id: 'MI', position: [6.55, 0, -4.65] },
+      { id: 'MI', position: [6.55, 0, -3.65] },
       { id: 'E9', position: [2.6, 0, -5.6] },
     ],
 
@@ -190,7 +190,7 @@ export const officeLevel = {
           facing: [0, 0, 1],
         },
         {
-          position: [-8.55, 0, 5.65],
+          position: [-8.55, 0, 5.8],
           action: 'print',
           duration: 2.8,
           facing: [-1, 0, 0],
@@ -239,7 +239,7 @@ export const officeLevel = {
           facing: [0, 0, 1],
         },
         {
-          position: [8.35, 0, 4.8],
+          position: [8.2, 0, 4.2],
           action: 'tea',
           duration: 3.5,
           facing: [1, 0, 0],
@@ -251,7 +251,7 @@ export const officeLevel = {
           facing: [0, 0, -1],
         },
         {
-          position: [6.55, 0, -4.65],
+          position: [6.55, 0, -3.65],
           action: 'meeting',
           duration: 4.2,
           facing: [0, 0, -1],
@@ -276,7 +276,7 @@ export const officeLevel = {
 
       routine: [
         {
-          position: [-6.55, 0, -4.85],
+          position: [-6.55, 0, -3.75],
           action: 'read',
           duration: 5.8,
           facing: [0, 0, -1],
