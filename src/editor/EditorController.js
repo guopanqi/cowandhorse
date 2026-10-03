@@ -320,6 +320,34 @@ export class EditorController {
       event => {
         if (
           event.target.matches(
+            '[data-editor-level-field]',
+          )
+        ) {
+          const field =
+            event.target.dataset
+              .editorLevelField;
+
+          this.level[field] =
+            event.target.value;
+
+          this.session.markDirty();
+          this.renderInspector();
+          return;
+        }
+
+        if (
+          event.target.matches(
+            '[data-editor-param]',
+          )
+        ) {
+          this.applyInspectorParam(
+            event.target,
+          );
+          return;
+        }
+
+        if (
+          event.target.matches(
             '[data-editor-field]',
           )
         ) {
@@ -1238,6 +1266,50 @@ export class EditorController {
 
     if (
       ref.kind ===
+      'environment'
+    ) {
+      const fields = [];
+
+      if (Array.isArray(data.size)) {
+        ['W', 'H', 'D'].forEach(
+          (label, index) => {
+            fields.push(
+              `<label>${label}<input type="number" min="0.05" step="0.05" data-editor-param="size.${index}" value="${data.size[index] ?? 1}"></label>`,
+            );
+          },
+        );
+      }
+
+      for (
+        const key of [
+          'width',
+          'depth',
+          'height',
+          'partitionHeight',
+          'doorWidth',
+        ]
+      ) {
+        if (
+          data.params?.[key] != null
+        ) {
+          fields.push(
+            `<label>${key}<input type="number" min="0.05" step="0.05" data-editor-param="params.${key}" value="${data.params[key]}"></label>`,
+          );
+        }
+      }
+
+      if (fields.length) {
+        specific = `
+          <p class="editor-kicker editor-section-kicker">DIMENSIONS</p>
+          <div class="editor-dimension-grid">
+            ${fields.join('')}
+          </div>
+        `;
+      }
+    }
+
+    if (
+      ref.kind ===
       'routine'
     ) {
       specific = `
@@ -1326,6 +1398,39 @@ export class EditorController {
         ${canDelete ? '<button class="danger" data-editor-delete>删除</button>' : ''}
       </div>
     `;
+  }
+
+  applyInspectorParam(input) {
+    const data =
+      this.selectedData();
+
+    if (!data) return;
+
+    const path =
+      input.dataset.editorParam
+        .split('.');
+
+    const value =
+      Number(input.value);
+
+    if (path[0] === 'size') {
+      data.size ??= [1, 1, 1];
+      data.size[
+        Number(path[1])
+      ] = value;
+    } else if (
+      path[0] === 'params'
+    ) {
+      data.params ??= {};
+      data.params[path[1]] =
+        value;
+    }
+
+    this.commitMutation({
+      rebuild: true,
+      preserve:
+        this.selectedRef,
+    });
   }
 
   applyInspectorField(input) {
