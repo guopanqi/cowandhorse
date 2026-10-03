@@ -6,11 +6,11 @@ export const officeLevel = {
     maxZ: 8.5,
   },
 
-  playerSpawn: [0, 0, 6.25],
+  playerSpawn: [0, 0, 6.7],
 
   prepZone: {
-    center: [0, 0, 6.25],
-    radius: 1.65,
+    center: [0, 0, 6.7],
+    radius: 1.85,
   },
 
   extraction: {
@@ -21,7 +21,11 @@ export const officeLevel = {
 
   navigation: {
     nodes: [
-      { id: 'S0', position: [0, 0, 6.25] },
+      { id: 'S0', position: [0, 0, 6.7] },
+      { id: 'SL', position: [-1.6, 0, 6.7] },
+      { id: 'SLE', position: [-1.6, 0, 4.8] },
+      { id: 'SR', position: [1.6, 0, 6.7] },
+      { id: 'SRE', position: [1.6, 0, 4.8] },
 
       { id: 'C1', position: [0, 0, 4.8] },
       { id: 'C2', position: [0, 0, 3.2] },
@@ -63,7 +67,12 @@ export const officeLevel = {
     ],
 
     edges: [
-      ['S0', 'C1'],
+      ['S0', 'SL'],
+      ['SL', 'SLE'],
+      ['SLE', 'C1'],
+      ['S0', 'SR'],
+      ['SR', 'SRE'],
+      ['SRE', 'C1'],
       ['C1', 'C2'],
       ['C2', 'C3'],
       ['C3', 'C4'],
@@ -71,7 +80,7 @@ export const officeLevel = {
       ['C5', 'C6'],
       ['C6', 'C7'],
 
-      ['S0', 'W0'],
+      ['SLE', 'W0'],
       ['W0', 'W1'],
       ['W1', 'WP'],
       ['W0', 'W2'],
@@ -94,7 +103,7 @@ export const officeLevel = {
       ['C4', 'W6'],
       ['C5', 'W8'],
 
-      ['S0', 'E0'],
+      ['SRE', 'E0'],
       ['E0', 'E1'],
       ['E1', 'TEA'],
       ['E0', 'E2'],
@@ -181,13 +190,13 @@ export const officeLevel = {
         {
           position: [-5.0, 0, 3.2],
           action: 'check',
-          duration: 2.1,
+          duration: 3.8,
           facing: [1, 0, 0],
         },
         {
           position: [0, 0, 3.2],
           action: 'inspect',
-          duration: 2.0,
+          duration: 4.8,
           facing: [0, 0, 1],
         },
         {
@@ -236,7 +245,7 @@ export const officeLevel = {
         {
           position: [0, 0, 1.2],
           action: 'inspect',
-          duration: 2.2,
+          duration: 5.0,
           facing: [0, 0, 1],
         },
         {
@@ -279,13 +288,13 @@ export const officeLevel = {
         {
           position: [-6.55, 0, -3.75],
           action: 'read',
-          duration: 5.8,
+          duration: 4.2,
           facing: [0, 0, -1],
         },
         {
           position: [-6.55, 0, -2.5],
           action: 'inspect',
-          duration: 1.5,
+          duration: 1.0,
           facing: [1, 0, 0],
         },
         {
