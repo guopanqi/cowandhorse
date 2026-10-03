@@ -134,6 +134,10 @@ export class SafeInteractionSystem {
         this.active
           ? profile.activeLabel
           : profile.enterLabel,
+      actionLabel:
+        this.active
+          ? profile.exitLabel
+          : profile.enterLabel,
       prompt:
         this.active
           ? 'E · ' + profile.exitLabel
