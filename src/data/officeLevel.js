@@ -50,10 +50,10 @@ export const officeLevel = {
   navigation: {
     nodes: [
       { id: 'P', position: [0, 0, 6.65] },
-      { id: 'PL', position: [-1.55, 0, 6.35] },
-      { id: 'PR', position: [1.55, 0, 6.35] },
-      { id: 'SL', position: [-1.55, 0, 4.65] },
-      { id: 'SR', position: [1.55, 0, 4.65] },
+      { id: 'PL', position: [-1.65, 0, 6.65] },
+      { id: 'PR', position: [1.65, 0, 6.65] },
+      { id: 'SL', position: [-1.65, 0, 4.65] },
+      { id: 'SR', position: [1.65, 0, 4.65] },
       { id: 'S1', position: [0, 0, 4.55] },
 
       { id: 'S1FL', position: [-1.25, 0, 4.5] },
@@ -68,7 +68,7 @@ export const officeLevel = {
       { id: 'W4A', position: [-5.15, 0, -0.55] },
       { id: 'W4B', position: [-3.0, 0, -0.55] },
 
-      { id: 'WP1', position: [-8.35, 0, 4.0] },
+      { id: 'WP1', position: [-8.35, 0, 3.2] },
       { id: 'WP', position: [-8.45, 0, 5.85] },
 
       { id: 'E1', position: [3.0, 0, 4.25] },
@@ -86,16 +86,22 @@ export const officeLevel = {
       { id: 'S2R', position: [1.3, 0, -1.45] },
 
       { id: 'W5', position: [-4.2, 0, -1.3] },
-      { id: 'W6', position: [-4.4, 0, -3.15] },
+      { id: 'W6', position: [-3.98, 0, -3.05] },
+      { id: 'W6B', position: [-3.98, 0, -4.15] },
       { id: 'W7', position: [-3.2, 0, -4.15] },
 
+      { id: 'BDA', position: [-4.05, 0, -2.15] },
+      { id: 'BDB', position: [-5.65, 0, -2.15] },
       { id: 'BD', position: [-6.55, 0, -2.72] },
       { id: 'BI', position: [-6.55, 0, -3.68] },
 
       { id: 'E5', position: [4.2, 0, -1.3] },
-      { id: 'E6', position: [4.4, 0, -3.1] },
+      { id: 'E6', position: [4.0, 0, -3.05] },
+      { id: 'E6B', position: [4.0, 0, -4.1] },
       { id: 'E7', position: [3.2, 0, -4.1] },
 
+      { id: 'MDA', position: [4.05, 0, -2.15] },
+      { id: 'MDB', position: [5.65, 0, -2.15] },
       { id: 'MD', position: [6.55, 0, -2.68] },
       { id: 'MI', position: [6.55, 0, -3.58] },
 
@@ -155,20 +161,26 @@ export const officeLevel = {
       ['S2FL', 'S2L'],
       ['S2L', 'W5'],
       ['W5', 'W6'],
-      ['W6', 'W7'],
+      ['W6', 'W6B'],
+      ['W6B', 'W7'],
       ['W7', 'S3'],
 
-      ['W6', 'BD'],
+      ['W5', 'BDA'],
+      ['BDA', 'BDB'],
+      ['BDB', 'BD'],
       ['BD', 'BI'],
 
       ['S2', 'S2FR'],
       ['S2FR', 'S2R'],
       ['S2R', 'E5'],
       ['E5', 'E6'],
-      ['E6', 'E7'],
+      ['E6', 'E6B'],
+      ['E6B', 'E7'],
       ['E7', 'S3'],
 
-      ['E6', 'MD'],
+      ['E5', 'MDA'],
+      ['MDA', 'MDB'],
+      ['MDB', 'MD'],
       ['MD', 'MI'],
 
       ['S2L', 'C3L'],
