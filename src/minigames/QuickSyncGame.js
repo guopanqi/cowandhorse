@@ -1,75 +1,263 @@
 export class QuickSyncGame {
   constructor() {
     this.context = null;
-    this.timeLeft = 9;
-    this.progress = 0;
-    this.required = 4;
-    this.cooldown = 0;
-    this.onClick = this.onClick.bind(this);
-    this.lines = [
-      '“这个事情我们先拉齐一下。”',
-      '“颗粒度还可以再细一点。”',
-      '“最终还是要形成闭环。”',
-      '“这个事情你再往前跟一下。”'
+    this.roundIndex = 0;
+    this.score = 0;
+    this.state = 'briefing';
+    this.lineIndex = 0;
+    this.lineTimer = 0;
+    this.answerTimer = 0;
+    this.nextTimer = 0;
+
+    this.rounds = [
+      {
+        lines: [
+          '“方向其实是对的，不要大改。”',
+          '“第一页信息有点满，客户下午就看。”',
+          '“先把重点收一收，结构先别动。”',
+        ],
+        prompt: '现在最该做什么？',
+        choices: [
+          '重做整套结构',
+          '精简第一页信息',
+          '把主色换成红色',
+        ],
+        answer: 1,
+      },
+      {
+        lines: [
+          '“数据本身没问题。”',
+          '“老板最关心的是为什么这个月突然掉了。”',
+          '“别再补数字，先把原因讲清楚。”',
+        ],
+        prompt: '你应该先补什么？',
+        choices: [
+          '更多数据表',
+          '下降原因说明',
+          '新的封面页',
+        ],
+        answer: 1,
+      },
+      {
+        lines: [
+          '“明天早上给客户。”',
+          '“不要再加新功能了，风险太高。”',
+          '“把现在能跑通的流程说明白就行。”',
+        ],
+        prompt: '接下来要做什么？',
+        choices: [
+          '继续加功能',
+          '整理现有流程说明',
+          '推迟客户会议',
+        ],
+        answer: 1,
+      },
     ];
+
+    this.onChoice = this.onChoice.bind(this);
   }
 
   mount(container, context) {
     this.container = container;
     this.context = context;
+
     container.classList.add('active');
     container.innerHTML = `
-      <section class="minigame-card meeting-game">
-        <p class="eyebrow">${context.npcRole} · 快速同步</p>
-        <h2>先快速碰一下</h2>
-        <p class="meeting-line" data-line>${this.lines[0]}</p>
-        <button class="meeting-button" type="button">我在听</button>
-        <div class="meeting-progress" data-progress></div>
-        <div class="minigame-meta">
-          <span>别走神，跟上节奏</span>
-          <strong data-timer>9.0s</strong>
+      <section class="minigame-card meeting-game meeting-decode">
+        <div class="minigame-header">
+          <div>
+            <p class="eyebrow">${context.npcRole} · 快速同步</p>
+            <h2>听懂他到底要什么</h2>
+          </div>
+          <strong data-round>1 / 3</strong>
+        </div>
+
+        <div class="meeting-stage">
+          <p class="meeting-line" data-line></p>
+          <p class="meeting-prompt" data-prompt hidden></p>
+          <div class="meeting-choices" data-choices></div>
+          <p class="meeting-feedback" data-feedback></p>
+        </div>
+
+        <div class="meeting-score">
+          <span>抓住真正的 action item</span>
+          <div data-dots></div>
         </div>
       </section>
     `;
 
-    this.button = container.querySelector('.meeting-button');
     this.line = container.querySelector('[data-line]');
-    this.progressEl = container.querySelector('[data-progress]');
-    this.timer = container.querySelector('[data-timer]');
-    this.button.addEventListener('click', this.onClick);
-    this.renderProgress();
+    this.prompt = container.querySelector('[data-prompt]');
+    this.choices = container.querySelector('[data-choices]');
+    this.feedback = container.querySelector('[data-feedback]');
+    this.roundLabel = container.querySelector('[data-round]');
+    this.dots = container.querySelector('[data-dots]');
+
+    this.renderDots();
+    this.startRound();
   }
 
-  onClick() {
-    if (this.cooldown > 0) return;
-    this.progress += 1;
-    this.cooldown = 0.55;
+  startRound() {
+    this.state = 'briefing';
+    this.lineIndex = 0;
+    this.lineTimer = 0;
+    this.answerTimer = 0;
+    this.nextTimer = 0;
 
-    if (this.progress >= this.required) {
-      this.context.finish({ success: true });
-      return;
+    this.roundLabel.textContent =
+      `${this.roundIndex + 1} / ${this.rounds.length}`;
+
+    this.prompt.hidden = true;
+    this.prompt.textContent = '';
+    this.choices.innerHTML = '';
+    this.feedback.textContent = '';
+    this.line.textContent = this.rounds[this.roundIndex].lines[0];
+  }
+
+  showQuestion() {
+    const round = this.rounds[this.roundIndex];
+
+    this.state = 'answer';
+    this.answerTimer = 6.5;
+
+    this.line.textContent = '';
+    this.prompt.hidden = false;
+    this.prompt.textContent = round.prompt;
+
+    this.choices.innerHTML = round.choices
+      .map(
+        (choice, index) => `
+          <button
+            class="meeting-choice"
+            type="button"
+            data-index="${index}"
+          >
+            <span>${String.fromCharCode(65 + index)}</span>
+            ${choice}
+          </button>
+        `,
+      )
+      .join('');
+
+    this.choices
+      .querySelectorAll('button')
+      .forEach(button =>
+        button.addEventListener('click', this.onChoice),
+      );
+  }
+
+  onChoice(event) {
+    if (this.state !== 'answer') return;
+
+    const round = this.rounds[this.roundIndex];
+    const choice = Number(event.currentTarget.dataset.index);
+    const correct = choice === round.answer;
+
+    if (correct) this.score += 1;
+
+    this.state = 'feedback';
+    this.nextTimer = 1.15;
+
+    for (const button of this.choices.querySelectorAll('button')) {
+      const index = Number(button.dataset.index);
+      button.disabled = true;
+      if (index === round.answer) {
+        button.classList.add('correct');
+      } else if (index === choice) {
+        button.classList.add('wrong');
+      }
     }
 
-    this.line.textContent = this.lines[this.progress];
-    this.button.textContent = ['收到', '明白', '我跟一下', '闭环'][this.progress % 4];
-    this.renderProgress();
+    this.feedback.textContent = correct
+      ? '听懂了。'
+      : '你抓错重点了。';
+
+    this.renderDots();
   }
 
-  renderProgress() {
-    this.progressEl.innerHTML = Array.from({ length: this.required }, (_, i) =>
-      `<i class="${i < this.progress ? 'done' : ''}"></i>`
-    ).join('');
+  renderDots() {
+    this.dots.innerHTML = this.rounds
+      .map(
+        (_, index) =>
+          `<i class="${index < this.roundIndex ? 'done' : ''}"></i>`,
+      )
+      .join('');
   }
 
   update(dt) {
-    this.timeLeft -= dt;
-    this.cooldown = Math.max(0, this.cooldown - dt);
-    if (this.button) this.button.disabled = this.cooldown > 0;
-    if (this.timer) this.timer.textContent = `${Math.max(0, this.timeLeft).toFixed(1)}s`;
-    if (this.timeLeft <= 0) this.context.finish({ success: false });
+    if (this.state === 'briefing') {
+      this.lineTimer += dt;
+
+      if (this.lineTimer >= 1.18) {
+        this.lineTimer = 0;
+        this.lineIndex += 1;
+
+        const lines = this.rounds[this.roundIndex].lines;
+
+        if (this.lineIndex >= lines.length) {
+          this.showQuestion();
+        } else {
+          this.line.textContent = lines[this.lineIndex];
+        }
+      }
+      return;
+    }
+
+    if (this.state === 'answer') {
+      this.answerTimer -= dt;
+
+      if (this.answerTimer <= 0) {
+        this.state = 'feedback';
+        this.nextTimer = 1.0;
+        this.feedback.textContent = '你沉默得太久了。';
+
+        const round = this.rounds[this.roundIndex];
+        for (const button of this.choices.querySelectorAll('button')) {
+          button.disabled = true;
+          if (Number(button.dataset.index) === round.answer) {
+            button.classList.add('correct');
+          }
+        }
+      }
+      return;
+    }
+
+    if (this.state === 'feedback') {
+      this.nextTimer -= dt;
+
+      if (this.nextTimer <= 0) {
+        this.roundIndex += 1;
+
+        if (this.roundIndex >= this.rounds.length) {
+          const ratio = this.score / this.rounds.length;
+          const timeMultiplier =
+            ratio >= 1
+              ? 0.82
+              : ratio >= 2 / 3
+                ? 1
+                : ratio >= 1 / 3
+                  ? 1.22
+                  : 1.45;
+
+          this.context.finish({
+            success: ratio >= 2 / 3,
+            score: this.score,
+            timeMultiplier,
+          });
+          return;
+        }
+
+        this.renderDots();
+        this.startRound();
+      }
+    }
   }
 
   unmount() {
-    this.button?.removeEventListener('click', this.onClick);
+    this.choices
+      ?.querySelectorAll('button')
+      .forEach(button =>
+        button.removeEventListener('click', this.onChoice),
+      );
   }
 }
