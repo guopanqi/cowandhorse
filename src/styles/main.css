@@ -1416,3 +1416,684 @@ button, input { font: inherit; }
 .editor-dimension-grid input {
   width: 100%;
 }
+
+
+/* Editor v2 — focused workspaces -------------------------------------- */
+
+.editor-toolbar-v2 {
+  left: 14px;
+  right: 14px;
+  top: 14px;
+  min-height: 50px;
+  gap: 12px;
+  padding: 7px;
+  border-radius: 7px;
+  background: rgba(22, 24, 23, .95);
+}
+
+.editor-play {
+  min-width: 82px;
+  min-height: 36px !important;
+  border: 0 !important;
+  border-radius: 4px;
+  background: #d8a85f !important;
+  color: #171918 !important;
+  font-size: 11px !important;
+  letter-spacing: .04em;
+}
+
+.editor-play span {
+  margin-right: 4px;
+  font-size: 9px;
+}
+
+.editor-workspaces {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 5px;
+  background: rgba(255,255,255,.035);
+}
+
+.editor-workspaces button {
+  min-height: 30px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: rgba(255,255,255,.48);
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.editor-workspaces button:hover {
+  color: rgba(255,255,255,.8);
+  background: rgba(255,255,255,.04);
+}
+
+.editor-workspaces button.active {
+  color: #f0ede5;
+  background: rgba(255,255,255,.1);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
+}
+
+.editor-level-switcher {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 250px;
+  padding-left: 12px;
+  border-left: 1px solid rgba(255,255,255,.075);
+}
+
+.editor-toolbar-label {
+  margin-right: 2px;
+  color: rgba(255,255,255,.32);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+.editor-level-switcher select {
+  width: 190px;
+  height: 32px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 3px;
+  background: #171918;
+  color: rgba(255,255,255,.76);
+  padding: 0 8px;
+  font-size: 10px;
+}
+
+.editor-level-switcher button {
+  min-height: 32px !important;
+}
+
+.editor-toolbar-spacer {
+  flex: 1;
+  min-width: 12px;
+}
+
+.editor-save,
+.editor-publish-v2 {
+  min-height: 34px !important;
+  border-radius: 4px !important;
+}
+
+.editor-save {
+  min-width: 84px;
+}
+
+.editor-publish-v2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 74px;
+  border-color: rgba(91,170,116,.34) !important;
+  color: #a9ddb9 !important;
+}
+
+.editor-github-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.2);
+  box-shadow: 0 0 0 2px rgba(255,255,255,.035);
+}
+
+.editor-github-dot.connected {
+  background: #75c68d;
+  box-shadow: 0 0 8px rgba(117,198,141,.5);
+}
+
+.editor-more {
+  position: relative;
+}
+
+.editor-more summary {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 4px;
+  background: rgba(255,255,255,.035);
+  color: rgba(255,255,255,.58);
+  cursor: pointer;
+  list-style: none;
+  letter-spacing: .12em;
+}
+
+.editor-more summary::-webkit-details-marker {
+  display: none;
+}
+
+.editor-more[open] summary {
+  background: rgba(255,255,255,.08);
+  color: white;
+}
+
+.editor-more-menu {
+  position: absolute;
+  top: 42px;
+  right: 0;
+  z-index: 30;
+  width: 166px;
+  padding: 6px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 5px;
+  background: rgba(24,26,25,.985);
+  box-shadow: 0 18px 50px rgba(0,0,0,.35);
+}
+
+.editor-more-menu button {
+  display: block;
+  width: 100%;
+  min-height: 34px !important;
+  border: 0 !important;
+  border-radius: 3px;
+  background: transparent !important;
+  text-align: left;
+  color: rgba(255,255,255,.66) !important;
+}
+
+.editor-more-menu button:hover {
+  background: rgba(255,255,255,.055) !important;
+  color: white !important;
+}
+
+.editor-toolbar-v2 .editor-validation-pill {
+  margin-left: 0;
+  min-height: 34px;
+  border: 0;
+  cursor: pointer;
+}
+
+.editor-tool-panel {
+  position: absolute;
+  top: 78px;
+  left: 14px;
+  bottom: 18px;
+  z-index: 3;
+  width: 238px;
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,.075);
+  border-radius: 7px;
+  background: rgba(24,26,25,.90);
+  box-shadow: 0 18px 45px rgba(0,0,0,.18);
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+
+.editor-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,.065);
+}
+
+.editor-panel-heading h2 {
+  margin: 2px 0 0;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.editor-transform-toggle {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 4px;
+  background: rgba(255,255,255,.035);
+}
+
+.editor-transform-toggle button {
+  min-height: 25px;
+  padding: 4px 7px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: rgba(255,255,255,.36);
+  font-size: 8px;
+  cursor: pointer;
+}
+
+.editor-transform-toggle button.active {
+  background: rgba(255,255,255,.1);
+  color: #f0eee7;
+}
+
+.editor-panel-copy {
+  margin: 0 0 13px;
+  color: rgba(255,255,255,.38);
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.editor-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 6px;
+}
+
+.editor-tool-grid button,
+.editor-ai-actions button,
+.editor-gameplay-list button {
+  border: 1px solid rgba(255,255,255,.065);
+  border-radius: 4px;
+  background: rgba(255,255,255,.028);
+  color: rgba(255,255,255,.72);
+  cursor: pointer;
+}
+
+.editor-tool-grid button:hover,
+.editor-ai-actions button:hover,
+.editor-gameplay-list button:hover {
+  border-color: rgba(216,168,95,.28);
+  background: rgba(216,168,95,.07);
+  color: white;
+}
+
+.editor-tool-grid button {
+  min-height: 58px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 9px;
+  text-align: left;
+  font-size: 10px;
+}
+
+.editor-tool-icon {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 20px;
+  margin-bottom: 6px;
+  color: #d6aa6a;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.editor-focus-field {
+  margin-bottom: 13px;
+}
+
+.editor-focus-field select {
+  height: 36px !important;
+}
+
+.editor-ai-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.editor-ai-actions button {
+  min-height: 58px;
+  padding: 9px;
+  text-align: left;
+}
+
+.editor-legend {
+  display: grid;
+  gap: 7px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  color: rgba(255,255,255,.38);
+  font-size: 8px;
+}
+
+.editor-legend span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.editor-legend i {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.editor-legend i.nav {
+  border-radius: 50%;
+  background: #55c9e8;
+}
+
+.editor-legend i.routine {
+  background: #e2766a;
+}
+
+.editor-gameplay-list {
+  display: grid;
+  gap: 7px;
+}
+
+.editor-gameplay-list button {
+  min-height: 66px;
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 9px;
+  text-align: left;
+}
+
+.editor-gameplay-list button .editor-tool-icon {
+  margin: 0;
+}
+
+.editor-gameplay-list strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 10px;
+}
+
+.editor-gameplay-list small {
+  display: block;
+  color: rgba(255,255,255,.34);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.editor-analysis-toggles {
+  display: grid;
+  gap: 6px;
+}
+
+.editor-analysis-toggles label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 36px;
+  padding: 7px 9px;
+  border: 1px solid rgba(255,255,255,.055);
+  border-radius: 4px;
+  color: rgba(255,255,255,.64);
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.editor-analysis-toggles input {
+  accent-color: #d7a45d;
+}
+
+.editor-secondary-wide {
+  width: 100%;
+  min-height: 34px !important;
+  margin-top: 10px;
+}
+
+.editor-inspector-v2 {
+  top: 78px;
+  right: 14px;
+  bottom: 18px;
+  width: 260px;
+  padding: 16px;
+  border-radius: 7px;
+  background: rgba(24,26,25,.90);
+}
+
+.editor-inspector-empty h2 {
+  margin-bottom: 18px;
+}
+
+.editor-level-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin: 16px 0;
+}
+
+.editor-level-summary span {
+  padding: 9px 5px;
+  border-radius: 3px;
+  background: rgba(255,255,255,.035);
+  color: rgba(255,255,255,.38);
+  text-align: center;
+  font-size: 7px;
+}
+
+.editor-level-summary strong {
+  display: block;
+  margin-bottom: 3px;
+  color: rgba(255,255,255,.75);
+  font-size: 13px;
+}
+
+.editor-selection-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.editor-selection-heading h2 {
+  margin: 2px 0 0;
+}
+
+.editor-selection-type {
+  padding: 3px 5px;
+  border-radius: 3px;
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.28);
+  font-size: 7px;
+  text-transform: uppercase;
+}
+
+.editor-inspector-section {
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+
+.editor-inspector-section h3 {
+  margin: 0 0 10px;
+  color: rgba(255,255,255,.43);
+  font-size: 8px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.editor-context-help {
+  position: absolute;
+  left: 50%;
+  bottom: 15px;
+  z-index: 3;
+  max-width: 560px;
+  transform: translateX(-50%);
+  padding: 7px 11px;
+  border: 1px solid rgba(255,255,255,.055);
+  border-radius: 4px;
+  background: rgba(20,22,21,.66);
+  color: rgba(255,255,255,.34);
+  font-size: 8px;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+}
+
+.editor-validation-v2 {
+  position: absolute;
+  top: 78px;
+  right: 288px;
+  z-index: 8;
+  display: none;
+  width: min(390px, calc(100vw - 590px));
+  max-height: calc(100vh - 110px);
+  overflow: auto;
+}
+
+.editor-validation-v2.visible {
+  display: block;
+}
+
+.editor-validation-card {
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 5px;
+  background: rgba(24,26,25,.96);
+  box-shadow: 0 16px 40px rgba(0,0,0,.25);
+}
+
+.editor-validation-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.editor-validation-card-head strong {
+  color: #efa49b;
+  font-size: 10px;
+}
+
+.editor-validation-card-head span {
+  color: rgba(255,255,255,.32);
+  font-size: 8px;
+}
+
+.editor-validation-card ul {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.editor-toast {
+  border-radius: 5px;
+}
+
+.editor-token-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.editor-token-row label {
+  min-width: 0;
+}
+
+.editor-forget-token {
+  height: 36px;
+  margin-bottom: 0;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.035);
+  color: rgba(255,255,255,.52);
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.editor-remember-token {
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: flex-start;
+  gap: 9px !important;
+  padding: 10px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 4px;
+  background: rgba(255,255,255,.025);
+}
+
+.editor-remember-token input {
+  width: auto !important;
+  height: auto !important;
+  margin-top: 2px;
+  accent-color: #d7a45d;
+}
+
+.editor-remember-token span {
+  color: rgba(255,255,255,.7);
+  font-size: 9px;
+}
+
+.editor-remember-token small {
+  display: block;
+  margin-top: 3px;
+  color: rgba(255,255,255,.32);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.editor-dialog-copy strong {
+  color: rgba(255,255,255,.75);
+}
+
+.editor-publish-status {
+  min-height: 16px;
+}
+
+@media (max-width: 1100px) {
+  .editor-level-switcher {
+    min-width: 190px;
+  }
+
+  .editor-level-switcher select {
+    width: 135px;
+  }
+
+  .editor-workspaces button {
+    padding-inline: 8px;
+  }
+
+  .editor-inspector-v2 {
+    width: 226px;
+  }
+
+  .editor-validation-v2 {
+    right: 254px;
+    width: min(330px, calc(100vw - 520px));
+  }
+}
+
+@media (max-width: 820px) {
+  .editor-toolbar-v2 {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .editor-toolbar-v2::-webkit-scrollbar {
+    display: none;
+  }
+
+  .editor-level-switcher {
+    min-width: 180px;
+  }
+
+  .editor-tool-panel,
+  .editor-inspector-v2 {
+    top: auto;
+    bottom: 10px;
+    height: 224px;
+  }
+
+  .editor-tool-panel {
+    left: 10px;
+    width: min(47vw, 300px);
+  }
+
+  .editor-inspector-v2 {
+    right: 10px;
+    width: min(47vw, 300px);
+  }
+
+  .editor-context-help {
+    display: none;
+  }
+
+  .editor-validation-v2 {
+    top: 72px;
+    right: 10px;
+    width: min(380px, calc(100vw - 20px));
+  }
+}
