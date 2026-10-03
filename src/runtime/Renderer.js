@@ -27,7 +27,16 @@ export class Renderer {
     const parent = this.renderer.domElement.parentElement;
     const width = parent?.clientWidth || window.innerWidth;
     const height = parent?.clientHeight || window.innerHeight;
-    this.camera.aspect = width / height;
+    const aspect = width / height;
+
+    this.camera.aspect = aspect;
+    this.camera.fov =
+      aspect < 0.72
+        ? 56
+        : aspect < 1
+          ? 52
+          : 48;
+
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
   }
