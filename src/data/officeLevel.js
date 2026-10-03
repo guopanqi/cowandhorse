@@ -16,6 +16,42 @@ export const officeLevel = {
   extraction: {
     position: [0, 0, -7.55],
     radius: 1.1,
+    callSeconds: 3.4,
+  },
+
+  events: {
+    extractionCall: {
+      npcId: 'boss',
+      routine: [
+        {
+          position: [-6.65, 0, -3.15],
+          action: 'walk',
+          duration: 0,
+        },
+        {
+          position: [-3.25, 0, -2.7],
+          action: 'walk',
+          duration: 0,
+        },
+        {
+          position: [0.7, 0, -4.05],
+          action: 'inspect',
+          duration: 1.5,
+          facing: [0, 0, -1],
+        },
+        {
+          position: [0.9, 0, -5.55],
+          action: 'check',
+          duration: 2.8,
+          facing: [0, 0, -1],
+        },
+        {
+          position: [-3.25, 0, -2.7],
+          action: 'walk',
+          duration: 0,
+        },
+      ],
+    },
   },
 
   routeDesign: {
