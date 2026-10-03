@@ -1,5 +1,5 @@
 import { CollisionWorld } from './CollisionWorld.js';
-import { OfficeBuilder } from './OfficeBuilder.js';
+import { DataDrivenOfficeBuilder } from './DataDrivenOfficeBuilder.js';
 import { ExtractionZone } from './ExtractionZone.js';
 import { OfficeEventDirector } from '../game/OfficeEventDirector.js';
 import { NavigationGraph } from './NavigationGraph.js';
@@ -15,7 +15,7 @@ export class OfficeLevel {
 
     this.collision = new CollisionWorld();
 
-    this.builder = new OfficeBuilder(
+    this.builder = new DataDrivenOfficeBuilder(
       scene,
       this.collision,
       data,
