@@ -1,91 +1,150 @@
 # Architecture
 
-## Goals
+## Principle
 
-Cow and Horse is a small game, but its structure should support a larger content set without turning the first playable slice into throwaway code.
+Cow and Horse is intentionally small, but the project should not be structured as a disposable prototype.
 
-The architecture separates five concerns:
+The rule is:
 
-1. **Runtime** — boot, main loop, scene changes, pause/restart.
-2. **World** — office scene, collision, interactable objects, extraction zones.
-3. **Actors** — player and NPCs.
-4. **Gameplay systems** — clock, stealth/detection, encounters, resources, minigames.
-5. **Presentation** — Three.js visuals, camera, UI, audio.
+> Simplify implementations, not architecture.
 
-Game rules should not depend directly on a specific 3D model.
+The first playable build may use procedural geometry, simple AABB collision and scripted office routines, but those implementations live behind stable game-facing modules so they can later be replaced by authored GLB scenes, BVH collision, navmesh movement, richer animation and more sophisticated AI.
 
-## Dependency direction
+## Runtime structure
 
 ```text
-App
- └─ Game
-    ├─ SceneManager
-    ├─ GameClock
-    ├─ ResourceSystem
-    ├─ EncounterSystem
-    ├─ MinigameManager
-    └─ OfficeLevel
-       ├─ PlayerController
-       ├─ NpcManager
-       │  └─ NpcAgent
-       │     ├─ PatrolBehavior
-       │     └─ VisionSensor
-       ├─ CollisionWorld
-       └─ ExtractionZone
+Game
+├─ Renderer
+├─ Input
+├─ GameClock
+├─ ResourceSystem
+├─ EncounterSystem
+├─ MinigameManager
+└─ OfficeLevel
+   ├─ OfficeBuilder
+   │  └─ CollisionWorld
+   ├─ PlayerController
+   │  └─ CharacterVisual
+   └─ NpcAgent
+      ├─ OfficeRoutine
+      ├─ VisionSensor
+      └─ CharacterVisual
 ```
 
-Presentation modules observe state and render it. They do not own core rules.
+Presentation remains separate:
 
-## Data-driven content
+```text
+FollowCamera
+VisionConeVisual
+Hud
+```
 
-Level-specific content lives in `src/data/`:
+## World and collision
 
-- office layout
-- spawn points
-- NPC patrol paths
-- NPC roles and penalties
-- level timing
-- minigame registrations
+Visual office geometry and collision are created from the same source.
 
-Later, these files can be moved to JSON without changing the runtime interfaces.
+`OfficeBuilder.box(...)` can register a collider at the same transform and size as the visible mesh. This prevents the old failure mode where manually maintained collision rectangles drift away from what the player sees.
 
-## Replaceable implementations
+A collider stores:
 
-### Character visuals
+- X/Z footprint
+- min/max world height
+- whether it blocks movement
+- whether it blocks sight
 
-Phase 1: procedural primitive-based low-poly characters.
+This allows different physical meanings:
 
-Later: GLB characters and animation clips.
+- wall: blocks movement and sight
+- glass: blocks movement, not sight
+- desk: blocks movement and low sight lines
+- cubicle partition: does not need to block walking separately, but blocks sight at its actual height
+- monitor: can interrupt a narrow sight line without becoming a floor obstacle
 
-Both use the same `CharacterVisual` interface.
+Later, this module can be replaced by BVH/capsule collision while preserving the `moveAndResolve` and sight-query responsibilities.
 
-### Collision
+## Player stance
 
-Phase 1: simple axis-aligned blockers suitable for an office.
+`PlayerController` owns stance state.
 
-Later: BVH/capsule collision against authored GLB geometry.
+Current stances:
 
-Both expose `moveAndResolve(position, delta)`.
+- standing: normal movement, eye height 1.68m
+- crouched: slower movement, eye height 0.82m
+- sprinting: standing only, faster but easier to detect
 
-### NPC movement
+Vision is tested between NPC eye position and player eye position in 3D. Therefore crouching only helps when scene geometry is actually tall enough to cover the lowered sight line.
 
-Phase 1: waypoint patrol.
+The same stance system can later drive authored crouch animations and capsule height changes.
 
-Later: navmesh/pathfinding and richer schedules.
+## NPC behavior
 
-NPC logic still targets destinations through `NpcAgent`.
+NPCs are not modeled as generic patrol guards.
 
-### Stealth sensing
+Each NPC owns an `OfficeRoutine`: a sequence of semantic office nodes such as:
 
-Phase 1: distance + angle + blocker ray test.
+- inspect a workstation
+- sit at a desk
+- print documents
+- stand in a meeting room
+- move between office areas
 
-Later: hearing, suspicion memory, search state and distractions.
+A node contains a target position, dwell time, facing and activity type.
 
-These extend `VisionSensor` / sensor components instead of rewriting NPCs.
+`NpcAgent` combines routine behavior with stealth states:
 
-### Minigames
+```text
+routine
+  ↓ partial detection
+suspicious
+  ↓ full detection
+chase
+  ↓ lose line of sight for several seconds
+suspicious
+  ↓ detection decays
+routine
+```
 
-Every overtime challenge implements a common lifecycle:
+Catching the player occurs through physical proximity during chase, not immediately when the detection meter fills.
+
+Later, `OfficeRoutine` can be backed by schedules, navmesh movement, animation state machines or authored behavior graphs without changing the encounter system.
+
+## Vision
+
+`VisionSensor` is responsible for the actual perception test:
+
+1. distance
+2. horizontal field-of-view angle
+3. 3D line-of-sight against height-aware colliders
+
+`VisionConeVisual` only renders readable player feedback. Its geometry is built around the same forward axis used by the sensor, and its color interpolates from amber to red as detection rises.
+
+Future sensors can add hearing, distraction memory, search areas and social visibility without changing the player or encounter interfaces.
+
+## Preparation phase
+
+17:59:50–18:00 is a distinct game phase.
+
+The player can move, crouch and reposition, but `PlayerController` is constrained to a small data-defined `prepZone` around the workstation.
+
+Later this phase can contain:
+
+- grabbing items
+- saving files
+- messaging coworkers
+- creating distractions
+- preparing excuses
+
+The movement boundary is therefore content data, not a hard-coded special case.
+
+## Encounters and minigames
+
+Detection does not directly cause game over.
+
+A successful chase catch starts an overtime encounter through `EncounterSystem`.
+
+NPC configuration selects a registered minigame by id. The office runtime does not know the minigame implementation.
+
+Every minigame follows a small lifecycle:
 
 ```text
 mount(context)
@@ -93,40 +152,33 @@ update(dt)
 unmount()
 ```
 
-The office game never needs to know the internal mechanics.
+This currently supports Logo Bigger and Quick Sync and can expand to file searching, spreadsheet work, slide editing, meeting survival and other office-comedy interactions.
 
-## Game state
+## Data-driven level content
 
-The authoritative state lives in the Game instance:
+`src/data/officeLevel.js` currently defines:
 
-- phase: prep / escape / minigame / success / failure
-- in-game time
-- energy
-- accumulated overtime
-- current encounter
-- player/NPC state
+- player spawn
+- preparation zone
+- extraction
+- NPC role and penalties
+- perception values
+- chase tuning
+- office routine nodes
+- minigame mapping
 
-UI reads this state.
+The renderer and gameplay systems consume this data rather than embedding character-specific rules.
 
-## Phase 1 scope
+## Replacement roadmap
 
-The first playable slice is intentionally small:
+Current implementation -> later implementation:
 
-- one office
-- one extraction target
-- two patrol NPCs
-- one boss NPC
-- one overtime minigame
-- procedural environment and characters
+- procedural boxes -> modular Blender / GLB office kit
+- primitive people -> rigged GLB characters
+- pose transforms -> animation clips / animation state machine
+- AABB movement -> capsule + BVH collision
+- direct office-node movement -> navmesh/pathfinding
+- simple routine list -> schedules / authored behavior graph
+- basic sight -> sight + hearing + distraction/search memory
 
-The architecture already reserves expansion points for:
-
-- inventory
-- multiple levels
-- authored 3D assets
-- animation
-- distractions
-- hiding spots
-- social interactions
-- additional minigames
-- save/progression
+The important constraint is that these upgrades replace modules rather than rewrite the game loop.
