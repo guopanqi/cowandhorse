@@ -4,9 +4,10 @@ import { OfficeRoutine } from './OfficeRoutine.js';
 import { VisionSensor } from './VisionSensor.js';
 
 export class NpcAgent {
-  constructor(config, collision) {
+  constructor(config, collision, navigation) {
     this.config = config;
     this.collision = collision;
+    this.navigation = navigation;
 
     const start =
       config.routine?.[0]?.position ?? [0, 0, 0];
@@ -23,6 +24,7 @@ export class NpcAgent {
             : 0x6e665f,
       danger: config.danger,
     });
+
     this.visual.setPosition(this.position);
 
     this.routine = new OfficeRoutine(
@@ -46,6 +48,11 @@ export class NpcAgent {
     this.cooldown = 0;
     this.lostTime = 0;
     this.lastKnownPosition = this.position.clone();
+
+    this.path = [];
+    this.pathIndex = 0;
+    this.plannedTarget = null;
+    this.repathTimer = 0;
   }
 
   get eyePosition() {
@@ -59,11 +66,24 @@ export class NpcAgent {
     );
   }
 
+  clearPath() {
+    this.path = [];
+    this.pathIndex = 0;
+    this.plannedTarget = null;
+    this.repathTimer = 0;
+  }
+
   update(dt, player, canDetect = true) {
     this.justCaught = false;
+
     if (!this.enabled || this.state === 'capture') {
       return;
     }
+
+    this.repathTimer = Math.max(
+      0,
+      this.repathTimer - dt,
+    );
 
     if (this.cooldown > 0) {
       this.cooldown = Math.max(0, this.cooldown - dt);
@@ -88,6 +108,7 @@ export class NpcAgent {
         0,
         this.detection - dt * 0.8,
       );
+
       this.state = 'routine';
       this.updateRoutine(dt);
       return;
@@ -96,6 +117,7 @@ export class NpcAgent {
     if (visibility > 0) {
       const movementFactor =
         player.isSprinting ? 1.35 : 1;
+
       const stanceFactor =
         player.isCrouched ? 0.84 : 1;
 
@@ -117,6 +139,7 @@ export class NpcAgent {
       if (this.detection >= 0.28) {
         this.state = 'suspicious';
         this.activity = 'inspect';
+        this.clearPath();
 
         this.turnToward(
           player.position.clone().sub(this.position),
@@ -161,6 +184,7 @@ export class NpcAgent {
     this.lostTime = 0;
     this.lastKnownPosition.copy(player.position);
     this.activity = 'chase';
+    this.clearPath();
   }
 
   updateChase(dt, player, visibility) {
@@ -178,43 +202,16 @@ export class NpcAgent {
       );
     }
 
-    const target = this.lastKnownPosition;
-    const delta = target.clone().sub(this.position);
-    delta.y = 0;
-    const distanceToTarget = delta.length();
+    const chaseSpeed =
+      this.config.chaseSpeed ??
+      this.config.speed * 1.75;
 
-    if (distanceToTarget > 0.08) {
-      const direction = delta.normalize();
-      const chaseSpeed =
-        this.config.chaseSpeed ??
-        this.config.speed * 1.75;
-
-      const desiredMove =
-        direction.multiplyScalar(
-          Math.min(
-            distanceToTarget,
-            chaseSpeed * dt,
-          ),
-        );
-
-      const next =
-        this.collision.moveAndResolve(
-          this.position,
-          desiredMove,
-          0.28,
-        );
-
-      const actualMove =
-        next.clone().sub(this.position);
-      this.position.copy(next);
-
-      if (actualMove.lengthSq() > 0.0001) {
-        this.forward
-          .copy(actualMove)
-          .normalize();
-        this.visual.setFacing(this.forward);
-      }
-    }
+    this.moveToward(
+      this.lastKnownPosition,
+      dt,
+      chaseSpeed,
+      0.24,
+    );
 
     this.activity = 'chase';
     this.visual.setPose('idle');
@@ -226,12 +223,13 @@ export class NpcAgent {
     if (
       visibility > 0 &&
       distanceToPlayer <=
-        (this.config.catchDistance ?? 0.72)
+        (this.config.catchDistance ?? 0.76)
     ) {
       this.justCaught = true;
       this.state = 'capture-ready';
       this.detection = 1;
       this.activity = 'chase';
+      this.clearPath();
       return;
     }
 
@@ -242,6 +240,7 @@ export class NpcAgent {
       this.state = 'suspicious';
       this.detection = 0.18;
       this.activity = 'inspect';
+      this.clearPath();
       this.visual.setPose('inspect');
     }
   }
@@ -250,6 +249,7 @@ export class NpcAgent {
     this.state = 'capture';
     this.activity = 'capture';
     this.detection = 1;
+    this.clearPath();
   }
 
   updateCaptureApproach(dt, targetPosition) {
@@ -258,47 +258,25 @@ export class NpcAgent {
     delta.y = 0;
 
     const distance = delta.length();
+
     if (distance <= 0.68) {
       this.turnToward(delta, dt, 9);
       this.visual.setPosition(this.position);
       return true;
     }
 
-    const direction = delta.normalize();
-    const speed =
+    this.moveToward(
+      targetPosition,
+      dt,
       this.config.captureSpeed ??
-      Math.max(
-        1.5,
-        this.config.speed * 1.35,
-      );
-
-    const move =
-      direction.multiplyScalar(
-        Math.min(distance - 0.62, speed * dt),
-      );
-
-    const next =
-      this.collision.moveAndResolve(
-        this.position,
-        move,
-        0.25,
-      );
-
-    const actualMove =
-      next.clone().sub(this.position);
-    this.position.copy(next);
-
-    if (actualMove.lengthSq() > 0.0001) {
-      this.forward
-        .copy(actualMove)
-        .normalize();
-      this.visual.setFacing(this.forward);
-    }
+        Math.max(1.5, this.config.speed * 1.35),
+      0.12,
+    );
 
     this.visual.setPose('idle');
     this.visual.setPosition(this.position);
 
-    return false;
+    return this.position.distanceTo(targetPosition) <= 0.68;
   }
 
   releaseAfterCapture() {
@@ -307,6 +285,7 @@ export class NpcAgent {
     this.detection = 0;
     this.cooldown = 4.5;
     this.lostTime = 0;
+    this.clearPath();
     this.visual.setPose('idle');
   }
 
@@ -319,83 +298,174 @@ export class NpcAgent {
       return false;
     }
 
-    this.interruptRoutine =
-      new OfficeRoutine(
-        nodes,
-        this.config.speed * 1.15,
-        { loop: false },
-      );
+    this.interruptRoutine = new OfficeRoutine(
+      nodes,
+      this.config.speed * 1.15,
+      { loop: false },
+    );
 
     this.state = 'routine';
     this.detection = 0;
+    this.clearPath();
     return true;
   }
 
   updateRoutine(dt) {
     const activeRoutine =
-      this.interruptRoutine ??
-      this.routine;
+      this.interruptRoutine ?? this.routine;
 
-    const step =
-      activeRoutine.update(
-        this.position,
+    const intent =
+      activeRoutine.update(this.position, dt);
+
+    if (this.interruptRoutine?.completed) {
+      this.interruptRoutine = null;
+      this.clearPath();
+    }
+
+    this.activity = intent.action;
+
+    if (intent.target) {
+      this.moveToward(
+        intent.target,
         dt,
+        activeRoutine.speed,
+        0.5,
       );
 
-    if (
-      this.interruptRoutine?.completed
-    ) {
-      this.interruptRoutine = null;
-    }
-
-    this.activity = step.action;
-
-    if (step.move.lengthSq() > 0) {
-      const next = step.ignoreCollision
-        ? this.position.clone().add(step.move)
-        : this.collision.moveAndResolve(
-            this.position,
-            step.move,
-            0.28,
-          );
-
-      const actualMove =
-        next.clone().sub(this.position);
-
-      this.position.copy(next);
-
-      if (actualMove.lengthSq() > 0.0001) {
-        this.forward
-          .copy(actualMove)
-          .normalize();
-        this.visual.setFacing(this.forward);
-      }
-
       this.visual.setPose('idle');
-    } else {
-      if (step.facing) {
-        this.turnToward(step.facing, dt, 4);
-      }
-
-      const pose =
-        step.action === 'sit'
-          ? 'sit'
-          : step.action === 'print'
-            ? 'print'
-            : step.action === 'tea'
-              ? 'tea'
-              : step.action === 'read'
-                ? 'read'
-                : step.action === 'inspect' ||
-                    step.action === 'check' ||
-                    step.action === 'meeting'
-                  ? 'inspect'
-                  : 'idle';
-
-      this.visual.setPose(pose);
+      this.visual.setPosition(this.position);
+      return;
     }
 
+    this.clearPath();
+
+    if (intent.facing) {
+      this.turnToward(intent.facing, dt, 4);
+    }
+
+    const pose =
+      intent.action === 'sit'
+        ? 'sit'
+        : intent.action === 'print'
+          ? 'print'
+          : intent.action === 'tea'
+            ? 'tea'
+            : intent.action === 'read'
+              ? 'read'
+              : intent.action === 'inspect' ||
+                  intent.action === 'check' ||
+                  intent.action === 'meeting'
+                ? 'inspect'
+                : 'idle';
+
+    this.visual.setPose(pose);
     this.visual.setPosition(this.position);
+  }
+
+  moveToward(
+    target,
+    dt,
+    speed,
+    replanEvery = 0.45,
+  ) {
+    const targetChanged =
+      !this.plannedTarget ||
+      this.plannedTarget.distanceTo(target) > 0.35;
+
+    const direct =
+      this.collision.canTraverseSegment(
+        this.position,
+        target,
+        0.29,
+      );
+
+    if (direct) {
+      this.clearPath();
+      this.stepToward(target, dt, speed);
+      return;
+    }
+
+    if (
+      targetChanged ||
+      this.repathTimer <= 0 ||
+      this.path.length === 0
+    ) {
+      this.path =
+        this.navigation?.findPath(
+          this.position,
+          target,
+        ) ?? [];
+
+      this.pathIndex = 0;
+      this.plannedTarget = target.clone();
+      this.repathTimer = replanEvery;
+    }
+
+    while (
+      this.pathIndex < this.path.length &&
+      this.position.distanceTo(
+        this.path[this.pathIndex],
+      ) < 0.18
+    ) {
+      this.pathIndex += 1;
+    }
+
+    const waypoint =
+      this.path[this.pathIndex];
+
+    if (!waypoint) {
+      return;
+    }
+
+    const moved =
+      this.stepToward(
+        waypoint,
+        dt,
+        speed,
+      );
+
+    if (!moved) {
+      this.repathTimer = 0;
+    }
+  }
+
+  stepToward(target, dt, speed) {
+    const delta =
+      target.clone().sub(this.position);
+    delta.y = 0;
+
+    const distance = delta.length();
+
+    if (distance <= 0.001) {
+      return false;
+    }
+
+    const direction = delta.normalize();
+
+    const desired =
+      direction.multiplyScalar(
+        Math.min(distance, speed * dt),
+      );
+
+    const next =
+      this.collision.moveAndResolve(
+        this.position,
+        desired,
+        0.28,
+      );
+
+    const actual =
+      next.clone().sub(this.position);
+
+    if (actual.lengthSq() <= 0.000001) {
+      return false;
+    }
+
+    this.position.copy(next);
+    this.forward.copy(actual).normalize();
+    this.visual.setFacing(this.forward);
+
+    return true;
   }
 
   turnToward(direction, dt, speed = 4) {
@@ -420,6 +490,7 @@ export class NpcAgent {
 
     this.position.set(...start);
     this.forward.set(0, 0, 1);
+
     this.routine.reset();
     this.interruptRoutine = null;
 
@@ -429,6 +500,8 @@ export class NpcAgent {
     this.cooldown = 0;
     this.lostTime = 0;
     this.justCaught = false;
+
+    this.clearPath();
 
     this.visual.setPosition(this.position);
     this.visual.setFacing(this.forward);
