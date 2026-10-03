@@ -7,10 +7,10 @@ export const officeLevel = {
   },
 
   // V3 deliberately breaks the old bottom-center -> top-center axis.
-  playerSpawn: [-7.35, 0, 6.65],
+  playerSpawn: [-7.35, 0, 6.7],
 
   prepZone: {
-    center: [-7.35, 0, 6.65],
+    center: [-7.35, 0, 6.7],
     radius: 1.75,
   },
 
@@ -23,10 +23,10 @@ export const officeLevel = {
   levelDesign: {
     version: 'M3-V3-diagonal-core',
     safeIslands: {
-      start: [-7.35, 0, 6.65],
-      s1: [-4.1, 0, 4.8],
+      start: [-7.35, 0, 6.7],
+      s1: [-3.5, 0, 4.8],
       s2: [0, 0, -1.45],
-      s3: [5.05, 0, -5.65],
+      s3: [5.15, 0, -5.85],
     },
     encounters: {
       a: {
@@ -51,59 +51,59 @@ export const officeLevel = {
   navigation: {
     nodes: [
       // Start pod.
-      { id: 'P', position: [-7.35, 0, 6.65] },
-      { id: 'PL', position: [-8.8, 0, 6.55] },
-      { id: 'PR', position: [-5.9, 0, 6.55] },
-      { id: 'S1L', position: [-8.45, 0, 4.85] },
-      { id: 'S1R', position: [-5.35, 0, 4.85] },
-      { id: 'S1', position: [-4.1, 0, 4.8] },
+      { id: 'P', position: [-7.35, 0, 6.7] },
+      { id: 'PL', position: [-9.05, 0, 6.7] },
+      { id: 'PR', position: [-5.65, 0, 6.7] },
+      { id: 'S1L', position: [-9.0, 0, 4.8] },
+      { id: 'S1R', position: [-5.55, 0, 4.8] },
+      { id: 'S1', position: [-3.5, 0, 4.8] },
 
       // First loop around service core.
-      { id: 'W1', position: [-5.8, 0, 3.3] },
-      { id: 'W2', position: [-5.8, 0, 1.15] },
-      { id: 'W3', position: [-5.2, 0, -0.85] },
-      { id: 'W4', position: [-2.7, 0, -1.45] },
+      { id: 'W1', position: [-5.7, 0, 3.15] },
+      { id: 'W2', position: [-5.7, 0, 1.15] },
+      { id: 'W3', position: [-6.0, 0, -1.15] },
+      { id: 'W4', position: [-3.0, 0, -1.45] },
 
-      { id: 'E0', position: [-2.4, 0, 4.9] },
-      { id: 'E1', position: [2.4, 0, 4.9] },
-      { id: 'E2', position: [4.3, 0, 3.2] },
-      { id: 'E3', position: [4.35, 0, 1.0] },
-      { id: 'E4', position: [3.1, 0, -1.35] },
+      { id: 'E0', position: [-2.25, 0, 4.95] },
+      { id: 'E1', position: [2.35, 0, 4.95] },
+      { id: 'E2', position: [2.55, 0, 3.0] },
+      { id: 'E3', position: [4.55, 0, 0.8] },
+      { id: 'E4', position: [4.45, 0, -1.45] },
 
-      { id: 'PRINT', position: [-8.7, 0, 2.2] },
-      { id: 'TEA', position: [8.25, 0, 2.55] },
+      { id: 'PRINT', position: [-8.35, 0, 2.2] },
+      { id: 'TEA', position: [7.35, 0, 3.1] },
 
-      { id: 'S2W', position: [-1.55, 0, -1.45] },
+      { id: 'S2W', position: [-1.85, 0, -1.45] },
       { id: 'S2', position: [0, 0, -1.45] },
-      { id: 'S2E', position: [1.55, 0, -1.45] },
+      { id: 'S2E', position: [1.85, 0, -1.45] },
 
       // Second loop around executive rooms.
-      { id: 'BW0', position: [-2.7, 0, -2.35] },
-      { id: 'BW1', position: [-7.4, 0, -2.35] },
-      { id: 'BW2', position: [-7.45, 0, -5.65] },
-      { id: 'BW3', position: [-3.25, 0, -5.85] },
+      { id: 'BW0', position: [-2.0, 0, -1.8] },
+      { id: 'BW1', position: [-7.4, 0, -1.85] },
+      { id: 'BW2', position: [-7.45, 0, -5.95] },
+      { id: 'BW3', position: [-3.15, 0, -6.0] },
 
       { id: 'BD', position: [-4.75, 0, -2.35] },
-      { id: 'BI', position: [-4.75, 0, -3.55] },
+      { id: 'BI', position: [-4.75, 0, -3.25] },
 
       { id: 'C0', position: [-1.25, 0, -2.35] },
       { id: 'C1', position: [-1.25, 0, -4.1] },
-      { id: 'C2', position: [-1.25, 0, -5.75] },
+      { id: 'C2', position: [-1.25, 0, -5.95] },
 
-      { id: 'ME0', position: [2.9, 0, -2.1] },
-      { id: 'ME1', position: [5.0, 0, -2.35] },
-      { id: 'ME2', position: [5.25, 0, -4.35] },
-      { id: 'ME3', position: [5.05, 0, -5.65] },
+      { id: 'ME0', position: [4.35, 0, -1.8] },
+      { id: 'ME1', position: [4.45, 0, -2.35] },
+      { id: 'ME2', position: [4.5, 0, -4.45] },
+      { id: 'ME3', position: [5.15, 0, -5.85] },
 
       { id: 'MD', position: [1.9, 0, -2.25] },
-      { id: 'MI', position: [1.9, 0, -3.45] },
+      { id: 'MI', position: [1.9, 0, -3.1] },
 
-      { id: 'BACK0', position: [-1.25, 0, -5.75] },
-      { id: 'BACK1', position: [2.0, 0, -5.75] },
-      { id: 'S3', position: [5.05, 0, -5.65] },
+      { id: 'BACK0', position: [-1.25, 0, -5.95] },
+      { id: 'BACK1', position: [2.0, 0, -5.95] },
+      { id: 'S3', position: [5.15, 0, -5.85] },
 
       // Final lobby bends right toward the elevator.
-      { id: 'L1', position: [6.35, 0, -5.95] },
+      { id: 'L1', position: [6.25, 0, -5.95] },
       { id: 'L2', position: [7.25, 0, -6.45] },
       { id: 'EV', position: [7.25, 0, -7.15] },
     ],
@@ -213,7 +213,7 @@ export const officeLevel = {
           facing: [1, 0, 0],
         },
         {
-          position: [5.05, 0, -5.65],
+          position: [5.15, 0, -5.85],
           action: 'check',
           duration: 1.4,
           facing: [1, 0, -1],
@@ -251,25 +251,25 @@ export const officeLevel = {
 
       routine: [
         {
-          position: [-8.7, 0, 2.2],
+          position: [-8.35, 0, 2.2],
           action: 'print',
           duration: 1.8,
           facing: [-1, 0, 0],
         },
         {
-          position: [-5.8, 0, 3.3],
+          position: [-5.7, 0, 3.15],
           action: 'read',
           duration: 1.5,
           facing: [1, 0, 0],
         },
         {
-          position: [-4.1, 0, 4.8],
+          position: [-3.5, 0, 4.8],
           action: 'inspect',
           duration: 4.0,
           facing: [-1, 0, 1],
         },
         {
-          position: [-5.8, 0, 1.15],
+          position: [-5.7, 0, 1.15],
           action: 'check',
           duration: 2.0,
           facing: [1, 0, 0],
@@ -300,7 +300,7 @@ export const officeLevel = {
 
       routine: [
         {
-          position: [4.3, 0, 3.2],
+          position: [2.55, 0, 3.0],
           action: 'check',
           duration: 1.5,
           facing: [-1, 0, 0],
@@ -312,13 +312,13 @@ export const officeLevel = {
           facing: [0, 0, 1],
         },
         {
-          position: [8.25, 0, 2.55],
+          position: [7.35, 0, 3.1],
           action: 'tea',
           duration: 3.2,
           facing: [1, 0, 0],
         },
         {
-          position: [1.9, 0, -3.45],
+          position: [1.9, 0, -3.1],
           action: 'meeting',
           duration: 4.3,
           facing: [0, 0, -1],
@@ -349,7 +349,7 @@ export const officeLevel = {
 
       routine: [
         {
-          position: [-4.75, 0, -3.55],
+          position: [-4.75, 0, -3.25],
           action: 'read',
           duration: 8.2,
           facing: [0, 0, -1],
@@ -367,7 +367,7 @@ export const officeLevel = {
           facing: [1, 0, 0],
         },
         {
-          position: [5.05, 0, -5.65],
+          position: [5.15, 0, -5.85],
           action: 'inspect',
           duration: 2.0,
           facing: [1, 0, -1],
