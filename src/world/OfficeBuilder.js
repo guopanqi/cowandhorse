@@ -229,6 +229,9 @@ export class OfficeBuilder {
       desk.add(mesh);
 
       if (collider) {
+        // The desk is a nested Group. Update the parent transform first,
+        // otherwise child colliders are registered near the world origin.
+        desk.updateMatrixWorld(true);
         mesh.updateMatrixWorld(true);
 
         const worldPosition = new THREE.Vector3();
