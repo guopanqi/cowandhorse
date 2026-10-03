@@ -88,6 +88,11 @@ export class Game {
 
     this.hud = new Hud(
       this.root.querySelector('[data-hud]'),
+      {
+        onRestart: () => {
+          this.input.pressVirtual('KeyR');
+        },
+      },
     );
 
     this.mobileControls =
