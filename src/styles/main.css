@@ -942,3 +942,454 @@ button, input { font: inherit; }
     display: none;
   }
 }
+
+
+/* Graybox editor ------------------------------------------------------- */
+
+.editor-launch {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: 7;
+  transform: translateY(-50%);
+  padding: 10px 8px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-right: 0;
+  background: rgba(20,22,21,.7);
+  color: rgba(255,255,255,.72);
+  writing-mode: vertical-rl;
+  letter-spacing: .14em;
+  font-size: 9px;
+  font-weight: 900;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+.editor-launch:hover {
+  color: white;
+  background: rgba(37,40,38,.92);
+}
+
+.editor-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  pointer-events: none;
+  color: #e8e6df;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.editor-layer.active {
+  display: block;
+}
+
+.editor-ui {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.editor-toolbar,
+.editor-palette,
+.editor-inspector,
+.editor-validation-panel,
+.editor-help {
+  pointer-events: auto;
+}
+
+.editor-toolbar {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 12px;
+  min-height: 46px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  background: rgba(25,27,26,.94);
+  border: 1px solid rgba(255,255,255,.09);
+  box-shadow: 0 12px 34px rgba(0,0,0,.28);
+  backdrop-filter: blur(12px);
+}
+
+.editor-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.editor-toolbar-group + .editor-toolbar-group {
+  padding-left: 10px;
+  border-left: 1px solid rgba(255,255,255,.08);
+}
+
+.editor-toolbar button,
+.editor-palette button,
+.editor-inspector button,
+.editor-dialog-actions button {
+  min-height: 30px;
+  padding: 6px 9px;
+  border: 1px solid rgba(255,255,255,.09);
+  background: rgba(255,255,255,.045);
+  color: #deddd8;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.editor-toolbar button:hover,
+.editor-palette button:hover,
+.editor-inspector button:hover {
+  background: rgba(255,255,255,.1);
+  color: white;
+}
+
+.editor-toolbar .editor-primary,
+.editor-dialog-actions .editor-primary {
+  background: #d7a45d;
+  border-color: #d7a45d;
+  color: #181a18;
+}
+
+.editor-toolbar .editor-publish {
+  border-color: rgba(105,197,135,.38);
+  color: #a9dcb9;
+}
+
+.editor-level-picker {
+  min-width: 210px;
+}
+
+.editor-level-picker select {
+  min-width: 170px;
+  max-width: 240px;
+}
+
+.editor-toolbar select,
+.editor-inspector select,
+.editor-inspector input,
+.editor-palette select,
+.editor-publish-dialog input {
+  height: 30px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: #161817;
+  color: #e7e5df;
+  padding: 5px 7px;
+  outline: none;
+  font: inherit;
+  font-size: 10px;
+}
+
+.editor-toolbar select:focus,
+.editor-inspector select:focus,
+.editor-inspector input:focus,
+.editor-palette select:focus,
+.editor-publish-dialog input:focus {
+  border-color: rgba(215,164,93,.65);
+}
+
+.editor-validation-pill {
+  margin-left: auto;
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  border-radius: 4px;
+  background: rgba(255,255,255,.05);
+  color: rgba(255,255,255,.55);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.editor-validation-pill.valid {
+  color: #9dd7b0;
+  background: rgba(79,152,102,.13);
+}
+
+.editor-validation-pill.invalid {
+  color: #efa49b;
+  background: rgba(193,74,61,.14);
+}
+
+.editor-palette,
+.editor-inspector {
+  position: absolute;
+  top: 70px;
+  bottom: 54px;
+  width: 216px;
+  z-index: 3;
+  overflow: auto;
+  padding: 13px;
+  background: rgba(25,27,26,.91);
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 14px 34px rgba(0,0,0,.2);
+  backdrop-filter: blur(10px);
+}
+
+.editor-palette {
+  left: 12px;
+}
+
+.editor-inspector {
+  right: 12px;
+  width: 236px;
+}
+
+.editor-palette-group + .editor-palette-group {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+.editor-palette h3 {
+  margin: 0 0 9px;
+  color: rgba(255,255,255,.52);
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.editor-palette-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 5px;
+}
+
+.editor-palette-grid button {
+  min-height: 42px;
+  text-align: left;
+}
+
+.editor-kicker {
+  margin: 0 0 5px;
+  color: #d7a45d;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .15em;
+}
+
+.editor-inspector h2 {
+  margin: 0 0 17px;
+  overflow-wrap: anywhere;
+  font-size: 18px;
+  line-height: 1.05;
+}
+
+.editor-field {
+  display: grid;
+  gap: 5px;
+  margin: 0 0 11px;
+  color: rgba(255,255,255,.54);
+  font-size: 9px;
+  letter-spacing: .04em;
+}
+
+.editor-field input,
+.editor-field select {
+  width: 100%;
+}
+
+.editor-coordinates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-bottom: 11px;
+}
+
+.editor-coordinates label {
+  display: grid;
+  gap: 4px;
+  color: rgba(255,255,255,.48);
+  font-size: 9px;
+}
+
+.editor-coordinates input {
+  width: 100%;
+}
+
+.editor-inspector-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+.editor-inspector-actions .danger {
+  color: #efa49b;
+  border-color: rgba(220,91,77,.22);
+}
+
+.editor-mini-note {
+  margin: 7px 0 0;
+  color: rgba(255,255,255,.35);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.editor-help {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  z-index: 2;
+  transform: translateX(-50%);
+  padding: 7px 11px;
+  border: 1px solid rgba(255,255,255,.07);
+  background: rgba(21,23,22,.72);
+  color: rgba(255,255,255,.42);
+  font-size: 8px;
+  letter-spacing: .05em;
+  backdrop-filter: blur(8px);
+}
+
+.editor-validation-panel {
+  position: absolute;
+  right: 260px;
+  top: 70px;
+  z-index: 3;
+  max-width: 390px;
+}
+
+.editor-validation-panel details,
+.editor-toast {
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(25,27,26,.92);
+  box-shadow: 0 10px 28px rgba(0,0,0,.22);
+  backdrop-filter: blur(9px);
+  font-size: 9px;
+}
+
+.editor-validation-panel summary {
+  cursor: pointer;
+  color: #efa49b;
+  font-weight: 850;
+}
+
+.editor-validation-panel ul {
+  margin: 9px 0 0;
+  padding-left: 18px;
+  line-height: 1.55;
+}
+
+.editor-validation-panel li.error {
+  color: #eda69f;
+}
+
+.editor-validation-panel li.warning {
+  color: #e6c284;
+}
+
+.editor-toast.success {
+  color: #9dd7b0;
+}
+
+.editor-toast.error {
+  color: #efa49b;
+}
+
+.editor-publish-dialog {
+  width: min(460px, calc(100vw - 30px));
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.12);
+  background: #202321;
+  color: #e8e6df;
+  box-shadow: 0 30px 100px rgba(0,0,0,.5);
+}
+
+.editor-publish-dialog::backdrop {
+  background: rgba(7,8,8,.68);
+  backdrop-filter: blur(4px);
+}
+
+.editor-publish-dialog form {
+  padding: 22px;
+}
+
+.editor-publish-dialog h3 {
+  margin: 4px 0 8px;
+  font-size: 24px;
+}
+
+.editor-publish-dialog p {
+  color: rgba(255,255,255,.53);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.editor-publish-dialog label {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+  color: rgba(255,255,255,.58);
+  font-size: 9px;
+}
+
+.editor-publish-dialog input {
+  width: 100%;
+  height: 36px;
+}
+
+.editor-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  margin-top: 20px;
+}
+
+.editor-hidden {
+  display: none !important;
+}
+
+.boot-error {
+  width: min(720px, calc(100% - 40px));
+  margin: 12vh auto;
+  padding: 28px;
+  background: #242725;
+  color: #e9e6dd;
+  border: 1px solid rgba(255,255,255,.1);
+}
+
+.boot-error h1 {
+  margin: 6px 0 18px;
+}
+
+.boot-error pre {
+  overflow: auto;
+  white-space: pre-wrap;
+  color: #e29a90;
+  font-size: 11px;
+}
+
+@media (max-width: 900px) {
+  .editor-toolbar {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .editor-palette,
+  .editor-inspector {
+    top: auto;
+    bottom: 10px;
+    height: 210px;
+  }
+
+  .editor-palette {
+    width: min(48vw, 300px);
+  }
+
+  .editor-inspector {
+    width: min(48vw, 300px);
+  }
+
+  .editor-help {
+    display: none;
+  }
+
+  .editor-validation-panel {
+    top: 66px;
+    right: 10px;
+    max-width: min(360px, calc(100vw - 20px));
+  }
+}
