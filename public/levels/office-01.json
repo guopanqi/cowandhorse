@@ -8,13 +8,13 @@
   "playerSpawn": [
     -7.35,
     0,
-    6.65
+    6.7
   ],
   "prepZone": {
     "center": [
       -7.35,
       0,
-      6.65
+      6.7
     ],
     "radius": 1.75
   },
@@ -33,10 +33,10 @@
       "start": [
         -7.35,
         0,
-        6.65
+        6.7
       ],
       "s1": [
-        -4.1,
+        -3.5,
         0,
         4.8
       ],
@@ -46,27 +46,27 @@
         -1.45
       ],
       "s3": [
-        5.05,
+        5.15,
         0,
-        -5.65
+        -6.15
       ]
     },
     "encounters": {
       "a": {
         "name": "工位出口",
-        "purpose": "从左下角工位离开，第一次读组长的打印路线。"
+        "purpose": "左下角起点；从工位两侧离开并观察打印区。"
       },
       "b": {
         "name": "服务核心环",
-        "purpose": "围绕不透明的储物/服务器核心走西侧格子间、东侧协作区或南北切线。"
+        "purpose": "不透明服务核心切断全局视线，西侧格子间与东侧协作区形成第一环。"
       },
       "c": {
         "name": "管理层夹层",
-        "purpose": "老板办公室与玻璃会议室形成第二个环，路线在后方重新汇合。"
+        "purpose": "老板办公室与玻璃会议室形成第二环，中央通道短而危险。"
       },
       "d": {
         "name": "右上电梯厅",
-        "purpose": "出口不在视线正前方；呼叫电梯后老板会切入最终大厅。"
+        "purpose": "出口偏到右上，呼叫后老板会切入最终大厅。"
       }
     }
   },
@@ -77,45 +77,53 @@
         "position": [
           -7.35,
           0,
-          6.65
+          6.7
         ]
       },
       {
         "id": "PL",
         "position": [
-          -8.8,
+          -9.05,
           0,
-          6.55
+          6.7
         ]
       },
       {
         "id": "PR",
         "position": [
-          -5.9,
+          -5.65,
           0,
-          6.55
+          6.7
         ]
       },
       {
         "id": "S1L",
         "position": [
-          -8.45,
+          -9,
           0,
-          4.85
+          4.8
         ]
       },
       {
         "id": "S1R",
         "position": [
-          -5.35,
+          -5.55,
           0,
-          4.85
+          4.8
         ]
       },
       {
         "id": "S1",
         "position": [
-          -4.1,
+          -3.5,
+          0,
+          4.8
+        ]
+      },
+      {
+        "id": "W0",
+        "position": [
+          -5.95,
           0,
           4.8
         ]
@@ -123,95 +131,111 @@
       {
         "id": "W1",
         "position": [
-          -5.8,
+          -5.95,
           0,
-          3.3
+          3
         ]
       },
       {
         "id": "W2",
         "position": [
-          -5.8,
+          -5.95,
           0,
-          1.15
+          1.4
         ]
       },
       {
         "id": "W3",
         "position": [
-          -5.2,
+          -5.95,
           0,
-          -0.85
+          -1.25
         ]
       },
       {
         "id": "W4",
         "position": [
-          -2.7,
+          -3,
           0,
           -1.45
         ]
       },
       {
-        "id": "E0",
+        "id": "PRINT_A",
         "position": [
-          -2.4,
+          -9,
           0,
-          4.9
-        ]
-      },
-      {
-        "id": "E1",
-        "position": [
-          2.4,
-          0,
-          4.9
-        ]
-      },
-      {
-        "id": "E2",
-        "position": [
-          4.3,
-          0,
-          3.2
-        ]
-      },
-      {
-        "id": "E3",
-        "position": [
-          4.35,
-          0,
-          1
-        ]
-      },
-      {
-        "id": "E4",
-        "position": [
-          3.1,
-          0,
-          -1.35
+          3.25
         ]
       },
       {
         "id": "PRINT",
         "position": [
-          -8.7,
+          -8.35,
           0,
           2.2
         ]
       },
       {
+        "id": "PRINT_B",
+        "position": [
+          -8.35,
+          0,
+          1.4
+        ]
+      },
+      {
+        "id": "E0",
+        "position": [
+          -2.25,
+          0,
+          4.95
+        ]
+      },
+      {
+        "id": "E1",
+        "position": [
+          2.35,
+          0,
+          4.95
+        ]
+      },
+      {
+        "id": "E2",
+        "position": [
+          2.55,
+          0,
+          3
+        ]
+      },
+      {
+        "id": "E3",
+        "position": [
+          4.55,
+          0,
+          0.8
+        ]
+      },
+      {
+        "id": "E4",
+        "position": [
+          4.45,
+          0,
+          -1.45
+        ]
+      },
+      {
         "id": "TEA",
         "position": [
-          8.25,
+          7.35,
           0,
-          2.55
+          3.1
         ]
       },
       {
         "id": "S2W",
         "position": [
-          -1.55,
+          -1.85,
           0,
           -1.45
         ]
@@ -227,7 +251,7 @@
       {
         "id": "S2E",
         "position": [
-          1.55,
+          1.85,
           0,
           -1.45
         ]
@@ -235,9 +259,9 @@
       {
         "id": "BW0",
         "position": [
-          -2.7,
+          -2,
           0,
-          -2.35
+          -1.8
         ]
       },
       {
@@ -245,7 +269,7 @@
         "position": [
           -7.4,
           0,
-          -2.35
+          -1.85
         ]
       },
       {
@@ -253,15 +277,31 @@
         "position": [
           -7.45,
           0,
-          -5.65
+          -6.1
         ]
       },
       {
         "id": "BW3",
         "position": [
-          -3.25,
+          -3.15,
           0,
-          -5.85
+          -6.1
+        ]
+      },
+      {
+        "id": "BDA",
+        "position": [
+          -3.5,
+          0,
+          -1.8
+        ]
+      },
+      {
+        "id": "BDB",
+        "position": [
+          -4.75,
+          0,
+          -1.8
         ]
       },
       {
@@ -277,7 +317,7 @@
         "position": [
           -4.75,
           0,
-          -3.55
+          -3.25
         ]
       },
       {
@@ -301,21 +341,21 @@
         "position": [
           -1.25,
           0,
-          -5.75
+          -6.1
         ]
       },
       {
         "id": "ME0",
         "position": [
-          2.9,
+          4.35,
           0,
-          -2.1
+          -1.8
         ]
       },
       {
         "id": "ME1",
         "position": [
-          5,
+          4.45,
           0,
           -2.35
         ]
@@ -323,17 +363,33 @@
       {
         "id": "ME2",
         "position": [
-          5.25,
+          4.5,
           0,
-          -4.35
+          -4.45
         ]
       },
       {
         "id": "ME3",
         "position": [
-          5.05,
+          5.15,
           0,
-          -5.65
+          -6.15
+        ]
+      },
+      {
+        "id": "MDA",
+        "position": [
+          3.3,
+          0,
+          -1.8
+        ]
+      },
+      {
+        "id": "MDB",
+        "position": [
+          1.9,
+          0,
+          -1.8
         ]
       },
       {
@@ -349,7 +405,7 @@
         "position": [
           1.9,
           0,
-          -3.45
+          -3.1
         ]
       },
       {
@@ -357,7 +413,7 @@
         "position": [
           -1.25,
           0,
-          -5.75
+          -6.1
         ]
       },
       {
@@ -365,23 +421,23 @@
         "position": [
           2,
           0,
-          -5.75
+          -6.1
         ]
       },
       {
         "id": "S3",
         "position": [
-          5.05,
+          5.15,
           0,
-          -5.65
+          -6.15
         ]
       },
       {
         "id": "L1",
         "position": [
-          6.35,
+          6.25,
           0,
-          -5.95
+          -6.15
         ]
       },
       {
@@ -428,6 +484,10 @@
       ],
       [
         "S1",
+        "W0"
+      ],
+      [
+        "W0",
         "W1"
       ],
       [
@@ -451,11 +511,19 @@
         "S2"
       ],
       [
-        "W1",
+        "S1L",
+        "PRINT_A"
+      ],
+      [
+        "PRINT_A",
         "PRINT"
       ],
       [
         "PRINT",
+        "PRINT_B"
+      ],
+      [
+        "PRINT_B",
         "W2"
       ],
       [
@@ -491,14 +559,6 @@
         "TEA"
       ],
       [
-        "TEA",
-        "E3"
-      ],
-      [
-        "W1",
-        "E0"
-      ],
-      [
         "S2",
         "S2W"
       ],
@@ -524,6 +584,14 @@
       ],
       [
         "BW0",
+        "BDA"
+      ],
+      [
+        "BDA",
+        "BDB"
+      ],
+      [
+        "BDB",
         "BD"
       ],
       [
@@ -568,6 +636,14 @@
       ],
       [
         "ME0",
+        "MDA"
+      ],
+      [
+        "MDA",
+        "MDB"
+      ],
+      [
+        "MDB",
         "MD"
       ],
       [
@@ -602,14 +678,14 @@
   },
   "routeDesign": {
     "firstRing": {
-      "west": "格子间与打印区。低遮挡多、路径更长，组长覆盖频繁。",
-      "crosscut": "从 S1 沿服务核心南侧横切，最短，但容易进入两名领导的交叉视线。",
-      "east": "协作区与茶水区。空间更开，经理的停留与转身决定窗口。"
+      "west": "格子间与打印区：较慢、低掩体多、组长覆盖频繁。",
+      "crosscut": "服务核心南侧横切：短，但容易同时进入组长与经理视线。",
+      "east": "协作区与茶水区：更开放，依赖经理日程窗口。"
     },
     "secondRing": {
-      "west": "绕老板办公室外墙，距离最长但硬遮挡多；老板出门时风险骤升。",
-      "center": "老板办公室和会议室之间的窄长通道，最短也最暴露。",
-      "east": "绕玻璃会议室与茶水侧，路线长但能利用拐角切断追逐。"
+      "west": "绕老板办公室：最远、硬遮挡多，但老板出门时风险暴涨。",
+      "center": "老板办公室与会议室之间：最短、遮挡最少。",
+      "east": "绕玻璃会议室：较长，可以用拐角切断追逐。"
     }
   },
   "events": {
@@ -641,9 +717,9 @@
         },
         {
           "position": [
-            5.05,
+            5.15,
             0,
-            -5.65
+            -6.15
           ],
           "action": "check",
           "duration": 1.4,
@@ -696,7 +772,7 @@
       "routine": [
         {
           "position": [
-            -8.7,
+            -8.35,
             0,
             2.2
           ],
@@ -710,9 +786,9 @@
         },
         {
           "position": [
-            -5.8,
+            -5.95,
             0,
-            3.3
+            3
           ],
           "action": "read",
           "duration": 1.5,
@@ -724,7 +800,7 @@
         },
         {
           "position": [
-            -4.1,
+            -3.5,
             0,
             4.8
           ],
@@ -738,9 +814,9 @@
         },
         {
           "position": [
-            -5.8,
+            -5.95,
             0,
-            1.15
+            1.4
           ],
           "action": "check",
           "duration": 2,
@@ -782,9 +858,9 @@
       "routine": [
         {
           "position": [
-            4.3,
+            2.55,
             0,
-            3.2
+            3
           ],
           "action": "check",
           "duration": 1.5,
@@ -810,9 +886,9 @@
         },
         {
           "position": [
-            8.25,
+            7.35,
             0,
-            2.55
+            3.1
           ],
           "action": "tea",
           "duration": 3.2,
@@ -826,7 +902,7 @@
           "position": [
             1.9,
             0,
-            -3.45
+            -3.1
           ],
           "action": "meeting",
           "duration": 4.3,
@@ -870,7 +946,7 @@
           "position": [
             -4.75,
             0,
-            -3.55
+            -3.25
           ],
           "action": "read",
           "duration": 8.2,
@@ -910,9 +986,9 @@
         },
         {
           "position": [
-            5.05,
+            5.15,
             0,
-            -5.65
+            -6.15
           ],
           "action": "inspect",
           "duration": 2,
@@ -937,7 +1013,7 @@
   "schemaVersion": 1,
   "id": "office-01",
   "name": "18:00 办公室",
-  "description": "第一张办公室潜行灰盒：错位双环、三个观察岛与电梯尾段。",
+  "description": "M3 V3：左下工位出发，绕服务核心与管理层房间两次分流，右上电梯撤离。",
   "environment": [
     {
       "id": "floor",
@@ -956,49 +1032,33 @@
       "editable": false
     },
     {
-      "id": "zone-start",
+      "id": "team-carpet",
       "type": "zone",
       "position": [
-        0,
+        -4.4,
         0.001,
-        5.6
+        1.7
       ],
       "size": [
-        18.5,
+        10.2,
         0.015,
-        4
-      ],
-      "material": "zoneA",
-      "editable": false
-    },
-    {
-      "id": "zone-team",
-      "type": "zone",
-      "position": [
-        0,
-        0.002,
-        0.6
-      ],
-      "size": [
-        18.5,
-        0.016,
-        6.6
+        11.3
       ],
       "material": "zoneB",
       "editable": false
     },
     {
-      "id": "zone-exec",
+      "id": "exec-carpet",
       "type": "zone",
       "position": [
-        0,
-        0.003,
-        -5.1
+        0.8,
+        0.002,
+        -4.5
       ],
       "size": [
-        18.5,
-        0.017,
-        5.7
+        12,
+        0.016,
+        6.8
       ],
       "material": "zoneC",
       "editable": false
@@ -1063,77 +1123,182 @@
       "id": "player-desk",
       "type": "desk",
       "position": [
-        0,
+        -7.35,
         0,
         5.72
       ],
       "params": {
-        "width": 2.35,
+        "width": 2.45,
         "depth": 0.95,
-        "partitionHeight": 1.1
+        "partitionHeight": 1.12
       }
     },
     {
-      "id": "s1-files",
-      "type": "tallCover",
+      "id": "start-neighbor",
+      "type": "desk",
       "position": [
+        -3.8,
         0,
-        0,
-        3.65
+        6.1
       ],
       "params": {
-        "width": 1.15,
-        "depth": 0.8
+        "width": 2.2,
+        "depth": 0.95,
+        "partitionHeight": 1.02
       }
     },
     {
-      "id": "start-coworker-west",
-      "type": "desk",
+      "id": "start-files",
+      "type": "tallCover",
       "position": [
         -4.8,
         0,
-        5.55
+        3.7
       ],
       "params": {
-        "width": 2.15,
-        "depth": 0.95,
-        "partitionHeight": 1.02
-      }
-    },
-    {
-      "id": "start-coworker-east",
-      "type": "desk",
-      "position": [
-        4.8,
-        0,
-        5.55
-      ],
-      "params": {
-        "width": 2.15,
-        "depth": 0.95,
-        "partitionHeight": 1.02
+        "width": 0.9,
+        "depth": 1.2,
+        "height": 1.9
       }
     },
     {
       "id": "west-printer",
       "type": "printer",
       "position": [
-        -9.25,
+        -9.2,
         0,
-        5.85
+        2.2
       ]
+    },
+    {
+      "id": "service-core",
+      "type": "box",
+      "position": [
+        0,
+        1.275,
+        1.8
+      ],
+      "size": [
+        3.2,
+        2.55,
+        5.15
+      ],
+      "material": "dark",
+      "collision": {
+        "movement": true,
+        "sight": true
+      },
+      "editable": false
+    },
+    {
+      "id": "team-w1",
+      "type": "desk",
+      "position": [
+        -7.55,
+        0,
+        3.95
+      ],
+      "params": {
+        "width": 2.25,
+        "depth": 0.95,
+        "partitionHeight": 1.12
+      }
+    },
+    {
+      "id": "team-w2",
+      "type": "desk",
+      "position": [
+        -4.35,
+        0,
+        2.6
+      ],
+      "params": {
+        "width": 2.2,
+        "depth": 0.95,
+        "partitionHeight": 1.12
+      }
+    },
+    {
+      "id": "team-w3",
+      "type": "desk",
+      "position": [
+        -7.5,
+        0,
+        0.45
+      ],
+      "params": {
+        "width": 2.25,
+        "depth": 0.95,
+        "partitionHeight": 1.12
+      }
+    },
+    {
+      "id": "team-w4",
+      "type": "desk",
+      "position": [
+        -4.35,
+        0,
+        -0.35
+      ],
+      "params": {
+        "width": 2.2,
+        "depth": 0.95,
+        "partitionHeight": 1.12
+      }
+    },
+    {
+      "id": "west-archive",
+      "type": "tallCover",
+      "position": [
+        -8.65,
+        0,
+        -0.65
+      ],
+      "params": {
+        "width": 0.8,
+        "depth": 1.5,
+        "height": 1.9
+      }
+    },
+    {
+      "id": "collab-a",
+      "type": "desk",
+      "position": [
+        4.6,
+        0,
+        4.1
+      ],
+      "params": {
+        "width": 2.3,
+        "depth": 1,
+        "partitionHeight": 1.02
+      }
+    },
+    {
+      "id": "collab-b",
+      "type": "desk",
+      "position": [
+        7.15,
+        0,
+        1
+      ],
+      "params": {
+        "width": 2.3,
+        "depth": 1,
+        "partitionHeight": 1.02
+      }
     },
     {
       "id": "tea-counter",
       "type": "counter",
       "position": [
-        8.75,
+        8.7,
         0,
-        5.15
+        3.1
       ],
       "params": {
-        "width": 1.65,
-        "depth": 0.7,
+        "width": 1.8,
+        "depth": 0.72,
         "height": 0.98
       }
     },
@@ -1141,157 +1306,36 @@
       "id": "water-cooler",
       "type": "waterCooler",
       "position": [
-        9.15,
+        8.8,
         0,
-        3.85
+        1.95
       ]
     },
     {
-      "id": "west-a",
-      "type": "desk",
-      "position": [
-        -6.65,
-        0,
-        4.55
-      ],
-      "params": {
-        "width": 2.2,
-        "depth": 1,
-        "partitionHeight": 1.12
-      }
-    },
-    {
-      "id": "west-b",
-      "type": "desk",
-      "position": [
-        -7.1,
-        0,
-        2
-      ],
-      "params": {
-        "width": 2.2,
-        "depth": 1,
-        "partitionHeight": 1.12
-      }
-    },
-    {
-      "id": "west-c",
-      "type": "desk",
-      "position": [
-        -7,
-        0,
-        -0.35
-      ],
-      "params": {
-        "width": 2.2,
-        "depth": 1,
-        "partitionHeight": 1.12
-      }
-    },
-    {
-      "id": "west-tall-files",
+      "id": "east-soft-break",
       "type": "tallCover",
       "position": [
-        -4,
+        3.25,
         0,
-        0.95
+        0
       ],
       "params": {
         "width": 0.75,
-        "depth": 1.45
-      }
-    },
-    {
-      "id": "east-a",
-      "type": "desk",
-      "position": [
-        5.9,
-        0,
-        4.45
-      ],
-      "params": {
-        "width": 2.15,
-        "depth": 1,
-        "partitionHeight": 1.02
-      }
-    },
-    {
-      "id": "east-b",
-      "type": "desk",
-      "position": [
-        7,
-        0,
-        2.05
-      ],
-      "params": {
-        "width": 2.2,
-        "depth": 1,
-        "partitionHeight": 1.02
-      }
-    },
-    {
-      "id": "s2-files",
-      "type": "tallCover",
-      "position": [
-        0,
-        0,
-        -0.95
-      ],
-      "params": {
-        "width": 1.35,
-        "depth": 0.82
-      }
-    },
-    {
-      "id": "west-archive",
-      "type": "tallCover",
-      "position": [
-        -3,
-        0,
-        -2.75
-      ],
-      "params": {
-        "width": 0.82,
-        "depth": 1.6
-      }
-    },
-    {
-      "id": "east-privacy",
-      "type": "tallCover",
-      "position": [
-        3.15,
-        0,
-        -2.75
-      ],
-      "params": {
-        "width": 0.82,
-        "depth": 1.6
-      }
-    },
-    {
-      "id": "s3-files",
-      "type": "tallCover",
-      "position": [
-        0,
-        0,
-        -4.82
-      ],
-      "params": {
-        "width": 1.75,
-        "depth": 0.82
+        "depth": 1.4,
+        "height": 1.9
       }
     },
     {
       "id": "boss-room",
       "type": "glassRoom",
       "position": [
-        -6.55,
+        -4.75,
         0,
-        -4.55
+        -4
       ],
       "params": {
         "width": 4.05,
-        "depth": 3.35,
+        "depth": 3.2,
         "doorWidth": 1.4
       }
     },
@@ -1299,13 +1343,13 @@
       "id": "meeting-room",
       "type": "glassRoom",
       "position": [
-        6.55,
+        1.9,
         0,
-        -4.45
+        -3.9
       ],
       "params": {
-        "width": 4.05,
-        "depth": 3.25,
+        "width": 3.45,
+        "depth": 3,
         "doorWidth": 1.4
       }
     },
@@ -1313,12 +1357,12 @@
       "id": "boss-desk",
       "type": "box",
       "position": [
-        -6.55,
+        -4.75,
         0.38,
-        -4.95
+        -4.25
       ],
       "size": [
-        2,
+        1.9,
         0.72,
         0.8
       ],
@@ -1332,9 +1376,9 @@
       "id": "boss-bookshelf",
       "type": "box",
       "position": [
-        -8.35,
+        -6.45,
         1,
-        -4.95
+        -4.35
       ],
       "size": [
         0.5,
@@ -1351,12 +1395,12 @@
       "id": "meeting-table",
       "type": "box",
       "position": [
-        6.55,
+        1.9,
         0.38,
-        -4.55
+        -4
       ],
       "size": [
-        2.1,
+        1.8,
         0.72,
         0.9
       ],
@@ -1367,48 +1411,81 @@
       }
     },
     {
-      "id": "lobby-plant-west",
-      "type": "plant",
+      "id": "east-executive-files",
+      "type": "tallCover",
       "position": [
-        -3,
+        5.7,
         0,
-        -6.25
+        -3.1
       ],
       "params": {
-        "width": 0.68,
-        "height": 1.35
+        "width": 0.8,
+        "depth": 1.5,
+        "height": 1.9
       }
     },
     {
-      "id": "lobby-bench-east",
-      "type": "bench",
+      "id": "back-hall-files",
+      "type": "tallCover",
       "position": [
-        3,
+        3.45,
         0,
-        -6.25
+        -5.05
       ],
       "params": {
-        "width": 1.5,
-        "height": 0.62,
-        "depth": 0.6
+        "width": 0.9,
+        "depth": 1.15,
+        "height": 1.9
+      }
+    },
+    {
+      "id": "lobby-plant",
+      "type": "plant",
+      "position": [
+        7.95,
+        0,
+        -5.35
+      ],
+      "params": {
+        "width": 0.72,
+        "height": 1.4
+      }
+    },
+    {
+      "id": "lobby-reception",
+      "type": "counter",
+      "position": [
+        6.15,
+        0,
+        -4.8
+      ],
+      "params": {
+        "width": 1.45,
+        "depth": 0.7,
+        "height": 0.92
       }
     },
     {
       "id": "elevator",
       "type": "elevator",
       "position": [
+        7.25,
         0,
-        0,
-        -7.45
+        -7.35
       ]
     },
     {
       "id": "culture-wall",
       "type": "cultureWall",
       "position": [
-        0,
+        7.25,
         0,
         -8
+      ],
+      "size": [
+        3.6,
+        1.05,
+        0.06
       ]
     }
   ],
@@ -1417,9 +1494,9 @@
       "id": "fake-work-player",
       "type": "fakeWork",
       "position": [
+        -7.35,
         0,
-        0,
-        5.95
+        6.55
       ],
       "linkedObjectId": "player-desk",
       "enabled": true
@@ -1428,31 +1505,31 @@
       "id": "fake-work-west",
       "type": "fakeWork",
       "position": [
-        -4.8,
+        -7.55,
         0,
-        5.8
+        4.78
       ],
-      "linkedObjectId": "start-coworker-west",
+      "linkedObjectId": "team-w1",
       "enabled": true
     },
     {
       "id": "fake-work-east",
       "type": "fakeWork",
       "position": [
-        4.8,
+        4.6,
         0,
-        5.8
+        4.95
       ],
-      "linkedObjectId": "start-coworker-east",
+      "linkedObjectId": "collab-a",
       "enabled": true
     },
     {
       "id": "hide-boss-corner",
       "type": "hideSpot",
       "position": [
-        -3.8,
+        -2.15,
         0,
-        -3.4
+        -3.2
       ],
       "enabled": true
     }
