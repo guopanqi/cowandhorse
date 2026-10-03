@@ -98,8 +98,6 @@ export class VisionConeVisual {
     const origin =
       this.agent.eyePosition;
 
-    const targetHeight =
-      this.player.eyePosition.y;
 
     for (
       let i = 0;
@@ -124,14 +122,12 @@ export class VisionConeVisual {
         this.distanceForAngle(
           origin,
           heading + a0,
-          targetHeight,
         );
 
       const d1 =
         this.distanceForAngle(
           origin,
           heading + a1,
-          targetHeight,
         );
 
       const offset =
@@ -212,7 +208,6 @@ export class VisionConeVisual {
   distanceForAngle(
     origin,
     worldAngle,
-    targetHeight,
   ) {
     const direction =
       new THREE.Vector3(
@@ -225,12 +220,14 @@ export class VisionConeVisual {
         ),
       );
 
+    // This is a floor-projected readability aid, not a ray toward the
+    // current player's eye. Any meaningful sight cover truncates the
+    // painted cone so the player can read safe shadow regions directly.
     return this.collision
-      .sightDistanceAlongRay(
+      .projectedSightDistanceAlongRay(
         origin,
         direction,
         this.radius,
-        targetHeight,
       );
   }
 }
