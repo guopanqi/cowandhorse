@@ -26,7 +26,7 @@ export const officeLevel = {
       start: [-7.35, 0, 6.7],
       s1: [-3.5, 0, 4.8],
       s2: [0, 0, -1.45],
-      s3: [5.15, 0, -5.85],
+      s3: [5.15, 0, -6.15],
     },
     encounters: {
       a: {
@@ -59,9 +59,10 @@ export const officeLevel = {
       { id: 'S1', position: [-3.5, 0, 4.8] },
 
       // First loop around service core.
-      { id: 'W1', position: [-5.7, 0, 3.15] },
-      { id: 'W2', position: [-5.7, 0, 1.15] },
-      { id: 'W3', position: [-6.0, 0, -1.15] },
+      { id: 'W0', position: [-5.95, 0, 4.8] },
+      { id: 'W1', position: [-5.95, 0, 3.0] },
+      { id: 'W2', position: [-5.95, 0, 1.4] },
+      { id: 'W3', position: [-5.95, 0, -1.25] },
       { id: 'W4', position: [-3.0, 0, -1.45] },
 
       { id: 'E0', position: [-2.25, 0, 4.95] },
@@ -70,7 +71,9 @@ export const officeLevel = {
       { id: 'E3', position: [4.55, 0, 0.8] },
       { id: 'E4', position: [4.45, 0, -1.45] },
 
+      { id: 'PRINT_A', position: [-9.0, 0, 3.25] },
       { id: 'PRINT', position: [-8.35, 0, 2.2] },
+      { id: 'PRINT_B', position: [-8.35, 0, 1.4] },
       { id: 'TEA', position: [7.35, 0, 3.1] },
 
       { id: 'S2W', position: [-1.85, 0, -1.45] },
@@ -80,9 +83,11 @@ export const officeLevel = {
       // Second loop around executive rooms.
       { id: 'BW0', position: [-2.0, 0, -1.8] },
       { id: 'BW1', position: [-7.4, 0, -1.85] },
-      { id: 'BW2', position: [-7.45, 0, -5.95] },
-      { id: 'BW3', position: [-3.15, 0, -6.0] },
+      { id: 'BW2', position: [-7.45, 0, -6.1] },
+      { id: 'BW3', position: [-3.15, 0, -6.1] },
 
+      { id: 'BDA', position: [-3.5, 0, -1.8] },
+      { id: 'BDB', position: [-4.75, 0, -1.8] },
       { id: 'BD', position: [-4.75, 0, -2.35] },
       { id: 'BI', position: [-4.75, 0, -3.25] },
 
@@ -93,17 +98,19 @@ export const officeLevel = {
       { id: 'ME0', position: [4.35, 0, -1.8] },
       { id: 'ME1', position: [4.45, 0, -2.35] },
       { id: 'ME2', position: [4.5, 0, -4.45] },
-      { id: 'ME3', position: [5.15, 0, -5.85] },
+      { id: 'ME3', position: [5.15, 0, -6.15] },
 
+      { id: 'MDA', position: [3.3, 0, -1.8] },
+      { id: 'MDB', position: [1.9, 0, -1.8] },
       { id: 'MD', position: [1.9, 0, -2.25] },
       { id: 'MI', position: [1.9, 0, -3.1] },
 
-      { id: 'BACK0', position: [-1.25, 0, -5.95] },
-      { id: 'BACK1', position: [2.0, 0, -5.95] },
-      { id: 'S3', position: [5.15, 0, -5.85] },
+      { id: 'BACK0', position: [-1.25, 0, -6.1] },
+      { id: 'BACK1', position: [2.0, 0, -6.1] },
+      { id: 'S3', position: [5.15, 0, -6.15] },
 
       // Final lobby bends right toward the elevator.
-      { id: 'L1', position: [6.25, 0, -5.95] },
+      { id: 'L1', position: [6.25, 0, -6.15] },
       { id: 'L2', position: [7.25, 0, -6.45] },
       { id: 'EV', position: [7.25, 0, -7.15] },
     ],
@@ -119,7 +126,8 @@ export const officeLevel = {
       ['S1R', 'S1'],
 
       // First loop west.
-      ['S1', 'W1'],
+      ['S1', 'W0'],
+      ['W0', 'W1'],
       ['W1', 'W2'],
       ['W2', 'W3'],
       ['W3', 'W4'],
@@ -127,8 +135,10 @@ export const officeLevel = {
       ['S2W', 'S2'],
 
       // Printing branch gives the team lead an office-shaped loop.
-      ['W1', 'PRINT'],
-      ['PRINT', 'W2'],
+      ['S1L', 'PRINT_A'],
+      ['PRINT_A', 'PRINT'],
+      ['PRINT', 'PRINT_B'],
+      ['PRINT_B', 'W2'],
 
       // First loop east. It crosses below the service core, then wraps its east side.
       ['S1', 'E0'],
@@ -140,10 +150,9 @@ export const officeLevel = {
       ['S2E', 'S2'],
 
       ['E2', 'TEA'],
-      ['TEA', 'E3'],
 
-      // Short exposed cross-cut between the two sides, north of the service core.
-      ['W1', 'E0'],
+      // The exposed cross-cut starts from S1 and runs along the south face
+      // of the opaque service core.
 
       // Second loop west, around the boss office.
       ['S2', 'S2W'],
@@ -153,7 +162,9 @@ export const officeLevel = {
       ['BW2', 'BW3'],
       ['BW3', 'BACK0'],
 
-      ['BW0', 'BD'],
+      ['BW0', 'BDA'],
+      ['BDA', 'BDB'],
+      ['BDB', 'BD'],
       ['BD', 'BI'],
 
       // Second loop center, between boss office and meeting room.
@@ -169,7 +180,9 @@ export const officeLevel = {
       ['ME1', 'ME2'],
       ['ME2', 'ME3'],
 
-      ['ME0', 'MD'],
+      ['ME0', 'MDA'],
+      ['MDA', 'MDB'],
+      ['MDB', 'MD'],
       ['MD', 'MI'],
 
       // Recombine behind the rooms.
@@ -213,7 +226,7 @@ export const officeLevel = {
           facing: [1, 0, 0],
         },
         {
-          position: [5.15, 0, -5.85],
+          position: [5.15, 0, -6.15],
           action: 'check',
           duration: 1.4,
           facing: [1, 0, -1],
@@ -257,7 +270,7 @@ export const officeLevel = {
           facing: [-1, 0, 0],
         },
         {
-          position: [-5.7, 0, 3.15],
+          position: [-5.95, 0, 3.0],
           action: 'read',
           duration: 1.5,
           facing: [1, 0, 0],
@@ -269,7 +282,7 @@ export const officeLevel = {
           facing: [-1, 0, 1],
         },
         {
-          position: [-5.7, 0, 1.15],
+          position: [-5.95, 0, 1.4],
           action: 'check',
           duration: 2.0,
           facing: [1, 0, 0],
@@ -367,7 +380,7 @@ export const officeLevel = {
           facing: [1, 0, 0],
         },
         {
-          position: [5.15, 0, -5.85],
+          position: [5.15, 0, -6.15],
           action: 'inspect',
           duration: 2.0,
           facing: [1, 0, -1],
