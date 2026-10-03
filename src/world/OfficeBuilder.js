@@ -240,20 +240,18 @@ export class OfficeBuilder {
     this.addDesk('WestB', -4.15, 2.15, 2.15, 1.0, 1.12);
     this.addDesk('WestC', -7.0, 0.05, 2.2, 1.0, 1.12);
     this.addDesk('WestD', -4.15, -2.2, 2.15, 1.0, 1.12);
-    this.addDesk('WestE', -6.7, -4.1, 2.2, 1.0, 1.12);
-
     this.box(
       'WestPrinter',
-      [0.9, 0.95, 0.68],
-      [-9.1, 0.5, 5.65],
+      [0.65, 0.95, 0.68],
+      [-9.35, 0.5, 5.65],
       this.materials.wall,
       { collider: { movement: true, sight: true } },
     );
 
     this.box(
       'WestSafeCabinet',
-      [0.82, 1.9, 1.7],
-      [-3.55, 0.95, -4.65],
+      [0.82, 1.9, 1.5],
+      [-3.55, 0.95, -5.25],
       this.materials.cabinet,
       { collider: { movement: true, sight: true } },
     );
@@ -265,7 +263,7 @@ export class OfficeBuilder {
     this.box(
       'CenterCoverSouth',
       [0.85, 1.25, 0.85],
-      [1.7, 0.63, 3.85],
+      [1.7, 0.63, 4.4],
       this.materials.plant,
       { collider: { movement: true, sight: true } },
     );
@@ -309,8 +307,8 @@ export class OfficeBuilder {
 
     this.box(
       'EastPrivacyCabinet',
-      [0.8, 1.9, 1.8],
-      [3.85, 0.95, -1.95],
+      [0.8, 1.9, 1.6],
+      [3.7, 0.95, -4.8],
       this.materials.cabinet,
       { collider: { movement: true, sight: true } },
     );
