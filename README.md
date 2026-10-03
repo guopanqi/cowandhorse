@@ -8,24 +8,74 @@ It is 18:00. Get out of the office without being caught by someone who can give 
 
 The current playable slice includes:
 
-- 10-second pre-escape phase with limited movement around your workstation
-- third-person office traversal
+- 10-second pre-escape phase around the workstation
+- third-person office stealth
 - standing, crouching and sprinting
-- three different escape routes
-- height-aware cover and line of sight
-- NPC office routines instead of generic guard patrols
-- suspicion, chase, lost-target recovery and catch sequences
+- height-aware cover and obstacle-clipped vision cones
+- NPC office routines, suspicion, chase and recovery
+- cinematic shoulder-tap capture sequences
 - overtime minigames
 - time and energy as failure resources
 - timed elevator extraction
+- desktop and touch controls
 
-## Engineering principle
+## Graybox editor
 
-**Simplify implementations, not architecture.**
+The game and editor are the same web app.
 
-The current build uses procedural low-poly office assets, simple height-aware box collision and scripted office routines. These sit behind stable modules so they can later be replaced by GLB assets, richer animation, BVH/capsule collision, navmesh/pathfinding, inventory and more advanced AI without rewriting the game loop.
+Open the normal game and press **EDIT** (or `Tab`), or open with:
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/MILESTONES.md](docs/MILESTONES.md).
+```text
+?edit=1
+```
+
+The editor supports:
+
+- placing office prefabs and gameplay markers
+- selecting, moving and rotating objects in 3D
+- editing desk / wall / room dimensions
+- navigation nodes and edge authoring
+- NPC routine nodes with office actions and dwell times
+- fake-work / hide / distraction interaction markers
+- live level validation
+- Save Draft to localStorage
+- Import / Export JSON
+- Duplicate and switch levels
+- Revert to the published version
+- Publish the level JSON directly to GitHub
+- recent playtest path overlays
+
+All level content lives in:
+
+```text
+public/levels/*.json
+```
+
+The runtime no longer contains a code-authored office layout.
+
+## Design loop
+
+```text
+paper encounter
+      ↓
+EDIT graybox
+      ↓
+Validate
+      ↓
+PLAY
+      ↓
+review player trail / stealth timing
+      ↓
+adjust
+      ↓
+Save Draft or Publish
+      ↓
+GitHub Actions
+      ↓
+validate-level + validate-stealth + build
+      ↓
+GitHub Pages
+```
 
 ## Local development
 
@@ -34,22 +84,32 @@ npm install
 npm run dev
 ```
 
-Controls:
+Controls in Play Mode:
 
 - `WASD` / arrow keys: move
 - `Shift`: sprint
 - `C`: crouch / stand
 - `R`: restart after win/failure
+- `Tab`: enter editor
 
-## Current level grammar
+Editor shortcuts:
 
-- **West / cubicles** — slower route with repeated low cover; crouching is useful.
-- **Center / main aisle** — fastest route but exposed to long sight lines and the boss.
-- **East / meeting rooms** — medium route where glass walls and the manager's routine matter.
+- `W`: translate
+- `E`: rotate
+- `Delete`: remove selected item
+- `Ctrl/Cmd + D`: duplicate selected item
+- `Tab`: playtest current graybox
+
+## Publishing from the web editor
+
+GitHub Pages cannot inherit ChatGPT or local GitHub credentials. The Publish dialog therefore accepts a fine-grained GitHub token at runtime. Use a token limited to this repository with Contents write permission.
+
+The token is not written into source code or localStorage.
 
 ## Stack
 
 - Three.js
 - Vite
 - HTML/CSS UI overlays
+- JSON-authored levels
 - GitHub Actions + GitHub Pages
