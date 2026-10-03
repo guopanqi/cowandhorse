@@ -5,7 +5,7 @@ import { ResourceSystem } from '../game/ResourceSystem.js';
 import { EncounterSystem } from '../game/EncounterSystem.js';
 import { CaptureSequence } from '../game/CaptureSequence.js';
 import { OfficeLevel } from '../world/OfficeLevel.js';
-import { officeLevel } from '../data/officeLevel.js';
+import { LevelLoader } from '../levels/LevelLoader.js';
 import { FollowCamera } from '../presentation/FollowCamera.js';
 import { Hud } from '../presentation/Hud.js';
 import { WorldBubbleLayer } from '../presentation/WorldBubbleLayer.js';
@@ -22,7 +22,7 @@ export class Game {
     this.phase = 'boot';
   }
 
-  start() {
+  async start() {
     this.root.innerHTML = `
       <div class="game-shell">
         <div class="game-stage" data-stage></div>
@@ -72,10 +72,17 @@ export class Game {
         minigames: this.minigames,
       });
 
+    this.levelLoader = new LevelLoader();
+
+    const levelData =
+      await this.levelLoader.loadPublished(
+        'office-01',
+      );
+
     this.level = new OfficeLevel({
       scene: this.renderer.scene,
       input: this.input,
-      data: officeLevel,
+      data: levelData,
     });
 
     this.camera = new FollowCamera(
