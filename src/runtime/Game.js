@@ -9,6 +9,7 @@ import { FollowCamera } from '../presentation/FollowCamera.js';
 import { Hud } from '../presentation/Hud.js';
 import { MinigameManager } from '../minigames/MinigameManager.js';
 import { LogoBiggerGame } from '../minigames/LogoBiggerGame.js';
+import { QuickSyncGame } from '../minigames/QuickSyncGame.js';
 
 const SIX_PM = 18 * 3600;
 
@@ -36,6 +37,7 @@ export class Game {
 
     this.minigames = new MinigameManager(this.root.querySelector('[data-minigame]'));
     this.minigames.register('logo-bigger', () => new LogoBiggerGame());
+    this.minigames.register('quick-sync', () => new QuickSyncGame());
 
     this.encounters = new EncounterSystem({
       clock: this.clock,
