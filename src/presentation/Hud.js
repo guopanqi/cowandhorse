@@ -1,6 +1,7 @@
 export class Hud {
   constructor(root) {
     this.root = root;
+
     this.root.innerHTML = `
       <div class="hud">
         <div class="mission-panel">
@@ -32,25 +33,54 @@ export class Hud {
     `;
 
     this.clock =
-      root.querySelector('[data-clock]');
+      root.querySelector(
+        '[data-clock]',
+      );
+
     this.objective =
-      root.querySelector('[data-objective]');
+      root.querySelector(
+        '[data-objective]',
+      );
+
     this.subtitle =
-      root.querySelector('[data-subtitle]');
+      root.querySelector(
+        '[data-subtitle]',
+      );
+
     this.energy =
-      root.querySelector('[data-energy]');
+      root.querySelector(
+        '[data-energy]',
+      );
+
     this.energyText =
-      root.querySelector('[data-energy-text]');
+      root.querySelector(
+        '[data-energy-text]',
+      );
+
     this.danger =
-      root.querySelector('[data-danger]');
+      root.querySelector(
+        '[data-danger]',
+      );
+
     this.dangerText =
-      root.querySelector('[data-danger-text]');
+      root.querySelector(
+        '[data-danger-text]',
+      );
+
     this.stance =
-      root.querySelector('[data-stance]');
+      root.querySelector(
+        '[data-stance]',
+      );
+
     this.announcement =
-      root.querySelector('[data-announcement]');
+      root.querySelector(
+        '[data-announcement]',
+      );
+
     this.result =
-      root.querySelector('[data-result]');
+      root.querySelector(
+        '[data-result]',
+      );
 
     this.announceTimer = 0;
   }
@@ -63,6 +93,7 @@ export class Hud {
       maxDetection = 0,
       isChased = false,
       isCrouched = false,
+      extraction = null,
     },
     dt,
   ) {
@@ -73,7 +104,9 @@ export class Hud {
       `${resources.energy}%`;
 
     this.energyText.textContent =
-      Math.round(resources.energy);
+      Math.round(
+        resources.energy,
+      );
 
     this.danger.style.width =
       `${Math.min(
@@ -109,15 +142,45 @@ export class Hud {
 
       this.subtitle.textContent =
         '可以在工位附近移动。观察一下领导都在干什么。';
-    } else if (phase === 'escape') {
-      this.objective.textContent =
-        '离开办公室';
+    } else if (
+      phase === 'escape'
+    ) {
+      if (
+        extraction?.state ===
+        'calling'
+      ) {
+        const percent =
+          Math.round(
+            extraction.progress *
+              100,
+          );
 
-      this.subtitle.textContent =
-        isChased
-          ? '甩掉他。利用拐角和高柜切断视线。'
-          : '左边掩体多，中央最快，右边要看经理的节奏。';
-    } else if (phase === 'capture') {
+        this.objective.textContent =
+          '电梯正在上来';
+
+        this.subtitle.textContent =
+          `坚持一下 · ${percent}% · 有人好像往这边来了`;
+      } else if (
+        extraction?.state ===
+        'ready'
+      ) {
+        this.objective.textContent =
+          '电梯到了';
+
+        this.subtitle.textContent =
+          '现在进去。';
+      } else {
+        this.objective.textContent =
+          '离开办公室';
+
+        this.subtitle.textContent =
+          isChased
+            ? '甩掉他。利用拐角和高柜切断视线。'
+            : '左边掩体多，中央最快，右边要看经理的节奏。';
+      }
+    } else if (
+      phase === 'capture'
+    ) {
       this.objective.textContent =
         '被抓住了';
 
@@ -126,7 +189,9 @@ export class Hud {
 
       this.dangerText.textContent =
         '完了';
-    } else if (phase === 'minigame') {
+    } else if (
+      phase === 'minigame'
+    ) {
       this.objective.textContent =
         '加班中';
 
@@ -134,26 +199,36 @@ export class Hud {
         '处理得越好，浪费的时间越少。';
     }
 
-    if (this.announceTimer > 0) {
+    if (
+      this.announceTimer > 0
+    ) {
       this.announceTimer -= dt;
 
-      if (this.announceTimer <= 0) {
-        this.announcement.classList.remove(
-          'show',
-        );
+      if (
+        this.announceTimer <= 0
+      ) {
+        this.announcement
+          .classList.remove(
+            'show',
+          );
       }
     }
   }
 
   announce(text) {
-    this.announcement.textContent = text;
-    this.announcement.classList.add(
-      'show',
-    );
+    this.announcement.textContent =
+      text;
+
+    this.announcement
+      .classList.add('show');
+
     this.announceTimer = 2.2;
   }
 
-  showResult(title, detail) {
+  showResult(
+    title,
+    detail,
+  ) {
     this.result.hidden = false;
 
     this.result.innerHTML = `
