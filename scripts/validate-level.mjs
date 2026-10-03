@@ -87,7 +87,7 @@ const authoredPlayerRoutes = {
   ],
 
   'second-ring-west': [
-    'S2', 'S2FL', 'S2L', 'W5', 'W6', 'W7', 'S3FL', 'S3',
+    'S2', 'S2FL', 'S2L', 'W5', 'W6', 'W6B', 'W7', 'S3FL', 'S3',
   ],
   'second-ring-center-left': [
     'S2', 'S2FL', 'S2L', 'C3L', 'C3', 'C4', 'S3',
@@ -96,7 +96,7 @@ const authoredPlayerRoutes = {
     'S2', 'S2FR', 'S2R', 'C3R', 'C3', 'C4', 'S3',
   ],
   'second-ring-east': [
-    'S2', 'S2FR', 'S2R', 'E5', 'E6', 'E7', 'S3FR', 'S3',
+    'S2', 'S2FR', 'S2R', 'E5', 'E6', 'E6B', 'E7', 'S3FR', 'S3',
   ],
 
   'final-left': [
