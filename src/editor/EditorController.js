@@ -1220,7 +1220,7 @@ export class EditorController {
 
     if (!data) return;
 
-    data.position = [
+    const position = [
       Number(
         this.selectedObject
           .position.x.toFixed(3),
@@ -1234,6 +1234,42 @@ export class EditorController {
 
     if (
       this.selectedRef.kind ===
+      'spawn'
+    ) {
+      this.level.playerSpawn =
+        position;
+
+      this.level.prepZone ??= {
+        center: [...position],
+        radius: 1.75,
+      };
+
+      this.level.prepZone.center =
+        [...position];
+    } else if (
+      this.selectedRef.kind ===
+      'extraction'
+    ) {
+      this.level.extraction.position =
+        position;
+
+      const elevator =
+        this.level.environment.find(
+          object =>
+            object.type ===
+            'elevator',
+        );
+
+      if (elevator) {
+        elevator.position =
+          [...position];
+      }
+    } else {
+      data.position = position;
+    }
+
+    if (
+      this.selectedRef.kind ===
       'environment'
     ) {
       data.rotation =
@@ -1242,6 +1278,14 @@ export class EditorController {
             .rotation.y
             .toFixed(4),
         );
+
+      if (
+        data.type ===
+        'elevator'
+      ) {
+        this.level.extraction.position =
+          [...position];
+      }
     }
   }
 
@@ -1484,6 +1528,8 @@ export class EditorController {
       data.position[index] =
         Number(input.value);
 
+      this.syncSpecialPositions();
+
       this.commitMutation({
         rebuild: true,
         preserve: ref,
@@ -1522,6 +1568,57 @@ export class EditorController {
       rebuild: false,
       preserve: ref,
     });
+  }
+
+  syncSpecialPositions() {
+    const ref =
+      this.selectedRef;
+
+    if (!ref) return;
+
+    if (ref.kind === 'spawn') {
+      this.level.prepZone ??= {
+        center:
+          [...this.level.playerSpawn],
+        radius: 1.75,
+      };
+
+      this.level.prepZone.center =
+        [...this.level.playerSpawn];
+    }
+
+    if (
+      ref.kind ===
+      'extraction'
+    ) {
+      const elevator =
+        this.level.environment.find(
+          object =>
+            object.type ===
+            'elevator',
+        );
+
+      if (elevator) {
+        elevator.position =
+          [...this.level.extraction.position];
+      }
+    }
+
+    if (
+      ref.kind ===
+      'environment'
+    ) {
+      const object =
+        this.selectedData();
+
+      if (
+        object?.type ===
+        'elevator'
+      ) {
+        this.level.extraction.position =
+          [...object.position];
+      }
+    }
   }
 
   setTransformMode(mode) {
@@ -1574,7 +1671,19 @@ export class EditorController {
               edge[1] === a),
         );
 
-    if (!exists) {
+    if (exists) {
+      this.level.navigation.edges =
+        this.level.navigation.edges
+          .filter(
+            edge =>
+              !(
+                (edge[0] === a &&
+                  edge[1] === b) ||
+                (edge[0] === b &&
+                  edge[1] === a)
+              ),
+          );
+    } else {
       this.level.navigation.edges
         .push([a, b]);
     }
