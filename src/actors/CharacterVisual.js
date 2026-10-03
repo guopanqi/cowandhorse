@@ -119,8 +119,8 @@ export class CharacterVisual {
     this.rightArm.position.set(0.42, 1.15, 0);
 
     if (pose === 'crouch') {
-      this.body.scale.y = 0.67;
-      this.body.position.y = 0.01;
+      this.body.scale.y = 0.55;
+      this.body.position.y = 0.015;
       return;
     }
 
