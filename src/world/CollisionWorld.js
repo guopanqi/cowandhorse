@@ -185,6 +185,54 @@ export class CollisionWorld {
     return true;
   }
 
+  projectedSightDistanceAlongRay(
+    origin,
+    direction,
+    maxDistance,
+    {
+      minOccluderHeight = 0.55,
+    } = {},
+  ) {
+    const stepSize = 0.07;
+
+    for (
+      let distance = stepSize;
+      distance <= maxDistance;
+      distance += stepSize
+    ) {
+      const x =
+        origin.x +
+        direction.x * distance;
+
+      const z =
+        origin.z +
+        direction.z * distance;
+
+      const blocked =
+        this.colliders.some(
+          collider =>
+            collider.sight &&
+            collider.maxY >=
+              minOccluderHeight &&
+            this.pointInsideCollider(
+              x,
+              z,
+              0,
+              collider,
+            ),
+        );
+
+      if (blocked) {
+        return Math.max(
+          0,
+          distance - stepSize,
+        );
+      }
+    }
+
+    return maxDistance;
+  }
+
   sightDistanceAlongRay(
     origin,
     direction,
