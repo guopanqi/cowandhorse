@@ -210,6 +210,21 @@ export class DataDrivenOfficeBuilder {
       collision: { movement: true, sight: true },
     });
 
+    // Desks are authored as "low cover": they keep their real movement
+    // footprint, but get a slightly taller sight-only volume. Standing
+    // characters remain visible over it; crouched characters can be fully
+    // hidden when the desk lies between observer and target.
+    const coverHeight =
+      object.params?.coverHeight ?? 1.08;
+
+    this.addCollider(
+      object,
+      [0, coverHeight * 0.5, 0],
+      [width, coverHeight, depth],
+      { movement: false, sight: true },
+      `${object.id}:low-cover`,
+    );
+
     this.addPart(root, object, {
       name: `${object.id}:partition`,
       size: [width + 0.06, partitionHeight, 0.08],
