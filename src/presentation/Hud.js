@@ -34,8 +34,9 @@ export class Hud {
           <label class="stance-row">姿态 <span data-stance>站立</span></label>
         </div>
 
-        <div class="controls">WASD 移动 · SHIFT 奔跑 · C 蹲伏 / 站起</div>
+        <div class="controls">WASD 移动 · SHIFT 奔跑 · C 蹲伏 · E 交互</div>
 
+        <div class="interaction-prompt" data-interaction-prompt hidden></div>
         <div class="announcement" data-announcement></div>
         <div class="result-card" data-result hidden></div>
       </div>
@@ -81,6 +82,11 @@ export class Hud {
         '[data-stance]',
       );
 
+    this.interactionPrompt =
+      root.querySelector(
+        '[data-interaction-prompt]',
+      );
+
     this.announcement =
       root.querySelector(
         '[data-announcement]',
@@ -103,6 +109,7 @@ export class Hud {
       isChased = false,
       isCrouched = false,
       extraction = null,
+      interaction = null,
     },
     dt,
   ) {
@@ -124,8 +131,10 @@ export class Hud {
       )}%`;
 
     this.dangerText.textContent =
-      isChased
-        ? '追捕中'
+      interaction?.safe
+        ? '伪装中'
+        : isChased
+          ? '追捕中'
         : maxDetection > 0.72
           ? '即将暴露'
           : maxDetection > 0.28
@@ -133,9 +142,25 @@ export class Hud {
             : '安全';
 
     this.stance.textContent =
-      isCrouched
-        ? '蹲伏'
-        : '站立';
+      interaction?.active
+        ? interaction.label
+        : isCrouched
+          ? '蹲伏'
+          : '站立';
+
+    if (interaction?.prompt) {
+      this.interactionPrompt.hidden = false;
+      this.interactionPrompt.textContent =
+        interaction.prompt;
+      this.interactionPrompt.classList.toggle(
+        'active',
+        Boolean(interaction.active),
+      );
+    } else {
+      this.interactionPrompt.hidden = true;
+      this.interactionPrompt.textContent = '';
+      this.interactionPrompt.classList.remove('active');
+    }
 
     if (phase === 'prep') {
       const remain = Math.max(
@@ -150,7 +175,9 @@ export class Hud {
         `距离下班还有 ${remain} 秒`;
 
       this.subtitle.textContent =
-        '可以在工位附近移动。观察一下领导都在干什么。';
+        interaction?.active
+          ? '你还坐在自己的电脑前。按 E 起身，再观察离开的时机。'
+          : '可以在工位附近移动。观察一下领导都在干什么。';
     } else if (
       phase === 'escape'
     ) {
@@ -183,9 +210,11 @@ export class Hud {
           '离开办公室';
 
         this.subtitle.textContent =
-          isChased
-            ? '甩掉他。利用拐角和高柜切断视线。'
-            : '左边掩体多，中央最快，右边要看经理的节奏。';
+          interaction?.active
+            ? '暂时安全。等领导走开，再按 E 离开这个位置。'
+            : isChased
+              ? '甩掉他。利用拐角和高柜切断视线。'
+              : '利用办公桌、饮水机和其他安全交互点隐藏意图。';
       }
     } else if (
       phase === 'capture'
