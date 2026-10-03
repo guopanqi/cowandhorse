@@ -1,30 +1,48 @@
 import * as THREE from 'three';
 import { CharacterVisual } from './CharacterVisual.js';
-import { PatrolBehavior } from './PatrolBehavior.js';
+import { OfficeRoutine } from './OfficeRoutine.js';
 import { VisionSensor } from './VisionSensor.js';
 
 export class NpcAgent {
   constructor(config, collision) {
     this.config = config;
-    this.position = new THREE.Vector3(...config.patrol[0]);
+    this.collision = collision;
+
+    const start = config.routine?.[0]?.position ?? [0, 0, 0];
+    this.position = new THREE.Vector3(...start);
     this.forward = new THREE.Vector3(0, 0, 1);
+
     this.visual = new CharacterVisual({
-      color: config.danger === 3 ? 0x363636 : config.danger === 2 ? 0x565e63 : 0x6e665f,
-      danger: config.danger
+      color:
+        config.danger === 3
+          ? 0x363636
+          : config.danger === 2
+            ? 0x565e63
+            : 0x6e665f,
+      danger: config.danger,
     });
     this.visual.setPosition(this.position);
 
-    this.patrol = new PatrolBehavior(config.patrol, config.speed);
+    this.routine = new OfficeRoutine(config.routine ?? [], config.speed);
     this.sensor = new VisionSensor({
       distance: config.visionDistance,
       angleDeg: config.visionAngle,
-      collision
+      collision,
     });
 
-    this.enabled = config.activeAfterSeconds == null;
+    this.enabled = true;
+    this.state = 'routine';
+    this.activity = 'idle';
     this.detection = 0;
     this.justCaught = false;
     this.cooldown = 0;
+    this.lostTime = 0;
+    this.lastKnownPosition = this.position.clone();
+  }
+
+  get eyePosition() {
+    const height = this.activity === 'sit' ? 1.18 : 1.68;
+    return new THREE.Vector3(this.position.x, height, this.position.z);
   }
 
   setEnabled(value) {
@@ -36,45 +54,215 @@ export class NpcAgent {
     this.justCaught = false;
     if (!this.enabled) return;
 
-    if (this.cooldown > 0) this.cooldown -= dt;
-
-    const move = this.patrol.update(this.position, dt);
-    if (move.lengthSq() > 0) {
-      this.position.add(move);
-      this.forward.copy(move).normalize();
-      this.visual.setFacing(this.forward);
-      this.visual.setPosition(this.position);
+    if (this.cooldown > 0) {
+      this.cooldown = Math.max(0, this.cooldown - dt);
     }
 
-    if (!canDetect || this.cooldown > 0) {
-      this.detection = Math.max(0, this.detection - dt * 1.8);
+    const visibility =
+      canDetect && this.cooldown <= 0
+        ? this.sensor.visibility(
+            this.eyePosition,
+            this.forward,
+            player.eyePosition,
+          )
+        : 0;
+
+    if (this.state === 'chase') {
+      this.updateChase(dt, player, visibility);
       return;
     }
 
-    const visibility = this.sensor.visibility(this.position, this.forward, player.position);
-    const sprintFactor = player.isSprinting ? 1.35 : 1;
-    if (visibility > 0) {
-      this.detection += dt * visibility * sprintFactor * 1.15;
-    } else {
-      this.detection = Math.max(0, this.detection - dt * 0.7);
+    if (!canDetect || this.cooldown > 0) {
+      this.detection = Math.max(0, this.detection - dt * 0.8);
+      this.state = 'routine';
+      this.updateRoutine(dt);
+      return;
     }
 
-    if (this.detection >= 1) {
-      this.detection = 0;
+    if (visibility > 0) {
+      const movementFactor = player.isSprinting ? 1.35 : 1;
+      const stanceFactor = player.isCrouched ? 0.84 : 1;
+
+      this.detection = Math.min(
+        1,
+        this.detection +
+          dt * visibility * 0.72 * movementFactor * stanceFactor,
+      );
+
+      if (this.detection >= 1) {
+        this.enterChase(player);
+        return;
+      }
+
+      if (this.detection >= 0.28) {
+        this.state = 'suspicious';
+        this.activity = 'inspect';
+        this.turnToward(
+          player.position.clone().sub(this.position),
+          dt,
+          5.5,
+        );
+        this.visual.setPose('inspect');
+        this.visual.setPosition(this.position);
+        return;
+      }
+
+      this.updateRoutine(dt);
+      return;
+    }
+
+    this.detection = Math.max(
+      0,
+      this.detection - dt * (this.state === 'suspicious' ? 0.42 : 0.65),
+    );
+
+    if (this.state === 'suspicious' && this.detection > 0.08) {
+      this.activity = 'inspect';
+      this.visual.setPose('inspect');
+      return;
+    }
+
+    this.state = 'routine';
+    this.updateRoutine(dt);
+  }
+
+  enterChase(player) {
+    this.state = 'chase';
+    this.detection = 1;
+    this.lostTime = 0;
+    this.lastKnownPosition.copy(player.position);
+    this.activity = 'chase';
+  }
+
+  updateChase(dt, player, visibility) {
+    if (visibility > 0) {
+      this.lostTime = 0;
+      this.detection = 1;
+      this.lastKnownPosition.copy(player.position);
+    } else {
+      this.lostTime += dt;
+      this.detection = Math.max(
+        0.18,
+        1 - this.lostTime / (this.config.chaseMemory ?? 3.2),
+      );
+    }
+
+    const target = this.lastKnownPosition;
+    const delta = target.clone().sub(this.position);
+    delta.y = 0;
+    const distanceToTarget = delta.length();
+
+    if (distanceToTarget > 0.08) {
+      const direction = delta.normalize();
+      const chaseSpeed = this.config.chaseSpeed ?? this.config.speed * 1.75;
+      const desiredMove = direction.multiplyScalar(
+        Math.min(distanceToTarget, chaseSpeed * dt),
+      );
+
+      const next = this.collision.moveAndResolve(
+        this.position,
+        desiredMove,
+        0.28,
+      );
+
+      const actualMove = next.clone().sub(this.position);
+      this.position.copy(next);
+
+      if (actualMove.lengthSq() > 0.0001) {
+        this.forward.copy(actualMove).normalize();
+        this.visual.setFacing(this.forward);
+      }
+    }
+
+    this.activity = 'chase';
+    this.visual.setPose('idle');
+    this.visual.setPosition(this.position);
+
+    const distanceToPlayer = this.position.distanceTo(player.position);
+    if (visibility > 0 && distanceToPlayer <= (this.config.catchDistance ?? 0.72)) {
       this.justCaught = true;
-      this.cooldown = 4;
+      this.state = 'routine';
+      this.detection = 0;
+      this.cooldown = 4.5;
+      this.lostTime = 0;
+      return;
+    }
+
+    if (this.lostTime >= (this.config.chaseMemory ?? 3.2)) {
+      this.state = 'suspicious';
+      this.detection = 0.18;
+      this.activity = 'inspect';
+      this.visual.setPose('inspect');
     }
   }
 
-  reset() {
-    this.position.set(...this.config.patrol[0]);
-    this.forward.set(0, 0, 1);
+  updateRoutine(dt) {
+    const step = this.routine.update(this.position, dt);
+    this.activity = step.action;
+
+    if (step.move.lengthSq() > 0) {
+      const next = step.ignoreCollision
+        ? this.position.clone().add(step.move)
+        : this.collision.moveAndResolve(this.position, step.move, 0.28);
+
+      const actualMove = next.clone().sub(this.position);
+      this.position.copy(next);
+
+      if (actualMove.lengthSq() > 0.0001) {
+        this.forward.copy(actualMove).normalize();
+        this.visual.setFacing(this.forward);
+      }
+
+      this.visual.setPose('idle');
+    } else {
+      if (step.facing) {
+        this.turnToward(step.facing, dt, 4);
+      }
+
+      const pose =
+        step.action === 'sit'
+          ? 'sit'
+          : step.action === 'print'
+            ? 'print'
+            : step.action === 'inspect' ||
+                step.action === 'check' ||
+                step.action === 'meeting'
+              ? 'inspect'
+              : 'idle';
+
+      this.visual.setPose(pose);
+    }
+
     this.visual.setPosition(this.position);
+  }
+
+  turnToward(direction, dt, speed = 4) {
+    const flat = direction.clone();
+    flat.y = 0;
+    if (flat.lengthSq() < 0.0001) return;
+
+    flat.normalize();
+    this.forward
+      .lerp(flat, Math.min(1, dt * speed))
+      .normalize();
     this.visual.setFacing(this.forward);
-    this.patrol.reset();
+  }
+
+  reset() {
+    const start = this.config.routine?.[0]?.position ?? [0, 0, 0];
+    this.position.set(...start);
+    this.forward.set(0, 0, 1);
+    this.routine.reset();
+
+    this.state = 'routine';
+    this.activity = 'idle';
     this.detection = 0;
     this.cooldown = 0;
-    this.enabled = this.config.activeAfterSeconds == null;
-    this.visual.group.visible = this.enabled;
+    this.lostTime = 0;
+    this.justCaught = false;
+
+    this.visual.setPosition(this.position);
+    this.visual.setFacing(this.forward);
+    this.visual.setPose('idle');
   }
 }
