@@ -185,6 +185,97 @@ export class CollisionWorld {
     return true;
   }
 
+  projectedSightProfileAlongRay(
+    origin,
+    direction,
+    maxDistance,
+    {
+      partialOccluderHeight = 0.78,
+      fullOccluderHeight = 1.45,
+    } = {},
+  ) {
+    const stepSize = 0.07;
+
+    let partialStart = null;
+    let blockedStart = null;
+
+    for (
+      let distance = stepSize;
+      distance <= maxDistance;
+      distance += stepSize
+    ) {
+      const x =
+        origin.x +
+        direction.x * distance;
+
+      const z =
+        origin.z +
+        direction.z * distance;
+
+      let tallest = -Infinity;
+
+      for (const collider of this.colliders) {
+        if (
+          !collider.sight ||
+          !this.pointInsideCollider(
+            x,
+            z,
+            0,
+            collider,
+          )
+        ) {
+          continue;
+        }
+
+        tallest = Math.max(
+          tallest,
+          collider.maxY,
+        );
+      }
+
+      if (
+        tallest >=
+        fullOccluderHeight
+      ) {
+        blockedStart =
+          Math.max(
+            0,
+            distance - stepSize,
+          );
+        break;
+      }
+
+      if (
+        partialStart === null &&
+        tallest >=
+          partialOccluderHeight
+      ) {
+        partialStart =
+          Math.max(
+            0,
+            distance - stepSize,
+          );
+      }
+    }
+
+    const blockedDistance =
+      blockedStart ?? maxDistance;
+
+    return {
+      clearEnd:
+        partialStart ??
+        blockedDistance,
+      partialStart,
+      partialEnd:
+        partialStart === null
+          ? null
+          : blockedDistance,
+      blockedStart,
+      visibleEnd:
+        blockedDistance,
+    };
+  }
+
   projectedSightDistanceAlongRay(
     origin,
     direction,
