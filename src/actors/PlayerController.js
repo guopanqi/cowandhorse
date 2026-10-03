@@ -17,6 +17,7 @@ export class PlayerController {
 
     this.isSprinting = false;
     this.isCrouched = false;
+    this.interactionPose = null;
   }
 
   get eyePosition() {
@@ -25,6 +26,36 @@ export class PlayerController {
       this.isCrouched ? 0.9 : 1.68,
       this.position.z,
     );
+  }
+
+  enterInteraction({
+    position,
+    facing = null,
+    pose = 'idle',
+  }) {
+    this.interactionPose = pose;
+    this.isSprinting = false;
+    this.isCrouched = pose === 'crouch';
+
+    if (position) {
+      this.position.set(...position);
+      this.visual.setPosition(this.position);
+    }
+
+    if (facing) {
+      this.visual.setFacing(
+        new THREE.Vector3(...facing),
+      );
+    }
+
+    this.visual.setPose(pose);
+  }
+
+  exitInteraction() {
+    this.interactionPose = null;
+    this.isSprinting = false;
+    this.isCrouched = false;
+    this.visual.setPose('idle');
   }
 
   update(dt, { enabled = true, moveRegion = null } = {}) {
@@ -80,6 +111,7 @@ export class PlayerController {
     this.position.copy(this.spawn);
     this.isCrouched = false;
     this.isSprinting = false;
+    this.interactionPose = null;
     this.visual.setPosition(this.position);
     this.visual.setFacing(new THREE.Vector3(0, 0, -1));
     this.visual.setPose('idle');
