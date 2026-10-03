@@ -264,14 +264,6 @@ export class OfficeBuilder {
     // The central aisle remains physically open. Its danger comes from
     // crossing patrols, not invisible collision.
     this.box(
-      'CenterCoverSouth',
-      [0.85, 1.25, 0.85],
-      [1.7, 0.63, 4.4],
-      this.materials.plant,
-      { collider: { movement: true, sight: true } },
-    );
-
-    this.box(
       'CenterCoverMid',
       [0.9, 1.65, 0.9],
       [-1.75, 0.83, -0.2],
