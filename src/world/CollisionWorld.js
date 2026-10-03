@@ -152,6 +152,37 @@ export class CollisionWorld {
     return false;
   }
 
+  canTraverseSegment(
+    from,
+    to,
+    radius = 0.3,
+  ) {
+    const dx = to.x - from.x;
+    const dz = to.z - from.z;
+    const distance = Math.hypot(dx, dz);
+
+    if (distance <= 0.001) {
+      return true;
+    }
+
+    const steps = Math.max(
+      2,
+      Math.ceil(distance / 0.08),
+    );
+
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      const x = from.x + dx * t;
+      const z = from.z + dz * t;
+
+      if (this.containsPoint(x, z, radius)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   sightDistanceAlongRay(
     origin,
     direction,
