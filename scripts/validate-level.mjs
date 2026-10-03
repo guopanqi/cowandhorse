@@ -4,6 +4,9 @@ import { CollisionWorld } from '../src/world/CollisionWorld.js';
 import { OfficeBuilder } from '../src/world/OfficeBuilder.js';
 import { NavigationGraph } from '../src/world/NavigationGraph.js';
 
+const PLAYER_RADIUS = 0.34;
+const NPC_RADIUS = 0.3;
+
 const scene = new THREE.Scene();
 const collision = new CollisionWorld();
 
@@ -18,7 +21,7 @@ builder.build();
 const navigation = new NavigationGraph(
   officeLevel.navigation,
   collision,
-  0.3,
+  PLAYER_RADIUS,
 );
 
 const nodeById = new Map(
@@ -34,6 +37,21 @@ const assert = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
+const validatePoint = (point, label, radius = NPC_RADIUS) => {
+  const position = new THREE.Vector3(...point);
+
+  assert(
+    !collision.containsPoint(
+      position.x,
+      position.z,
+      radius,
+    ),
+    `${label} overlaps movement geometry`,
+  );
+
+  return position;
+};
+
 for (const [a, b] of officeLevel.navigation.edges) {
   const from = nodeById.get(a);
   const to = nodeById.get(b);
@@ -46,70 +64,95 @@ for (const [a, b] of officeLevel.navigation.edges) {
   if (!from || !to) continue;
 
   assert(
-    collision.canTraverseSegment(from, to, 0.3),
-    `Navigation edge is physically blocked: ${a} -> ${b}`,
+    collision.canTraverseSegment(from, to, PLAYER_RADIUS),
+    `Navigation edge lacks player clearance: ${a} -> ${b}`,
   );
 }
 
-const centralRoute = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7'];
+const authoredPlayerRoutes = {
+  'opening-left': ['P', 'PL', 'SL', 'S1'],
+  'opening-right': ['P', 'PR', 'SR', 'S1'],
 
-for (let i = 0; i < centralRoute.length - 1; i++) {
-  const from = nodeById.get(centralRoute[i]);
-  const to = nodeById.get(centralRoute[i + 1]);
+  'first-ring-west': ['S1', 'W1', 'W2', 'W3', 'W4', 'S2'],
+  'first-ring-center-left': ['S1', 'C1L', 'C2', 'S2'],
+  'first-ring-center-right': ['S1', 'C1R', 'C2', 'S2'],
+  'first-ring-east': ['S1', 'E1', 'E2', 'E3', 'E4', 'S2'],
 
-  assert(
-    collision.canTraverseSegment(from, to, 0.34),
-    `Main aisle does not have player clearance: ${centralRoute[i]} -> ${centralRoute[i + 1]}`,
-  );
-}
+  'second-ring-west': ['S2', 'S2L', 'W5', 'W6', 'W7', 'S3'],
+  'second-ring-center-left': ['S2', 'S2L', 'C3', 'C4', 'S3'],
+  'second-ring-center-right': ['S2', 'S2R', 'C3', 'C4', 'S3'],
+  'second-ring-east': ['S2', 'S2R', 'E5', 'E6', 'E7', 'S3'],
 
-const validatePoint = (point, label) => {
-  const position = new THREE.Vector3(...point);
-
-  assert(
-    !collision.containsPoint(
-      position.x,
-      position.z,
-      0.29,
-    ),
-    `${label} overlaps movement geometry`,
-  );
-
-  return position;
+  'final-left': ['S3', 'S3L', 'EL', 'EV'],
+  'final-right': ['S3', 'S3R', 'ER', 'EV'],
 };
+
+for (const [routeName, route] of Object.entries(authoredPlayerRoutes)) {
+  for (let i = 0; i < route.length - 1; i++) {
+    const a = route[i];
+    const b = route[i + 1];
+
+    const from = nodeById.get(a);
+    const to = nodeById.get(b);
+
+    assert(
+      from && to,
+      `Player route ${routeName} references missing node: ${a} -> ${b}`,
+    );
+
+    if (!from || !to) continue;
+
+    assert(
+      collision.canTraverseSegment(from, to, PLAYER_RADIUS),
+      `Player route ${routeName} is blocked: ${a} -> ${b}`,
+    );
+  }
+}
+
+for (const [safeName, point] of Object.entries(
+  officeLevel.levelDesign?.safeIslands ?? {},
+)) {
+  validatePoint(
+    point,
+    `Safe island ${safeName}`,
+    PLAYER_RADIUS,
+  );
+}
 
 const playerSpawn = validatePoint(
   officeLevel.playerSpawn,
   'Player spawn',
+  PLAYER_RADIUS,
 );
+
 const extraction = validatePoint(
   officeLevel.extraction.position,
   'Extraction',
+  PLAYER_RADIUS,
 );
 
-const firstCenterNode = nodeById.get('C1');
-const startPath = navigation.findPath(
+const openingLeft = navigation.findPath(
   playerSpawn,
-  firstCenterNode,
+  nodeById.get('S1'),
 );
 
 assert(
-  startPath.length > 0,
-  'Player cannot leave the workstation safe island through either side aisle',
+  openingLeft.length > 0,
+  'Player cannot leave the starting workstation and reach S1',
 );
 
-const extractionPath = navigation.findPath(
-  nodeById.get('C6'),
+const elevatorPath = navigation.findPath(
+  nodeById.get('EV'),
   extraction,
 );
 
 assert(
   collision.canTraverseSegment(
-    nodeById.get('C6'),
+    nodeById.get('EV'),
     extraction,
-    0.34,
-  ) || extractionPath.length > 0,
-  'Player cannot reach the elevator staging area',
+    PLAYER_RADIUS,
+  ) || elevatorPath.length > 0,
+  'Player cannot move from the elevator staging node into extraction',
 );
 
 for (const npc of officeLevel.npcs) {
@@ -129,7 +172,7 @@ for (const npc of officeLevel.npcs) {
     const path = navigation.findPath(previous, target);
 
     assert(
-      collision.canTraverseSegment(previous, target, 0.29) ||
+      collision.canTraverseSegment(previous, target, NPC_RADIUS) ||
         path.length > 0,
       `${npc.id} cannot navigate routine[${i - 1}] -> routine[${i}]`,
     );
@@ -165,7 +208,7 @@ for (const [eventName, event] of Object.entries(
     const path = navigation.findPath(previous, target);
 
     assert(
-      collision.canTraverseSegment(previous, target, 0.29) ||
+      collision.canTraverseSegment(previous, target, NPC_RADIUS) ||
         path.length > 0,
       `Event ${eventName} cannot navigate to routine[${i}]`,
     );
@@ -176,13 +219,15 @@ for (const [eventName, event] of Object.entries(
 
 if (failures.length > 0) {
   console.error('\nLevel validation failed:\n');
+
   for (const failure of failures) {
     console.error(`- ${failure}`);
   }
+
   console.error('');
   process.exit(1);
 }
 
 console.log(
-  `Level validation passed: ${officeLevel.navigation.nodes.length} nodes, ${officeLevel.navigation.edges.length} authored edges, ${officeLevel.npcs.length} NPC routines.`,
+  `Level validation passed: ${officeLevel.navigation.nodes.length} nodes, ${officeLevel.navigation.edges.length} authored edges, ${Object.keys(authoredPlayerRoutes).length} player routes, ${officeLevel.npcs.length} NPC routines.`,
 );
