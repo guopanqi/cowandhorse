@@ -2,6 +2,8 @@
 
 ## M0 — Foundation
 
+Implemented:
+
 - Vite + Three.js project
 - stable module structure
 - game bootstrap and state machine
@@ -35,39 +37,54 @@ Implemented:
 Implemented:
 
 - MinigameManager
-- Logo Bigger
-- Quick Sync
+- scored minigame results
 - structured time / energy penalties
 - minigame assignment through NPC data
+- Quick Sync: extract the real action item from management speech
+- Version Hunt: infer the correct file from name, time and notes
 
-Next:
+## M3 — Level design and encounter pass
 
-- make individual minigames richer
-- add third microgame
-- improve transition presentation between chase and overtime
+Implemented:
 
-## M3 — Level design pass
-
-Next focus:
-
-- three readable escape routes
-- deliberate standing-vs-crouching cover
-- stronger sight-line composition
-- risk/reward shortcuts
-- NPC routine timing windows
-- meaningful waiting / crossing moments
-- boss surprise event
+- three distinct escape routes
+  - west cubicle route: slow, low cover, crouch-oriented
+  - central route: shortest, exposed, timing/sprint-oriented
+  - east meeting route: glass sight lines, manager-routine reading
+- deliberate standing-vs-crouching cover heights
+- tall cabinets and corners for chase line-of-sight breaks
+- route-specific NPC office routines
+- semantic office activities: inspect, print, sit, tea, read, meeting
+- world-space activity bubbles
+- data-driven one-shot routine interrupts
+- cinematic catch sequence
+  - controls lock
+  - NPC closes distance
+  - camera pushes in
+  - shoulder-tap pose
+  - speech bubble
+  - transition to overtime minigame
 - final elevator encounter
-- tune chase escape routes
-- improve tutorial readability
+  - calling the elevator takes time
+  - elevator doors visibly open
+  - extraction call triggers a boss interruption route
+  - player can retreat to cover while waiting
+- improved HUD route and extraction feedback
+- old generic patrol system removed
+- old shallow Logo Bigger minigame removed
+
+M3 should now be treated as the first full level-design baseline to playtest and tune, not as a finished balance pass.
 
 ## M4 — Art pipeline
+
+Next:
 
 - Blender modular office kit
 - shared palette/material strategy
 - GLB asset loading pipeline
 - modular base character
-- authored office animations
+- authored crouch / walk / office-action animations
+- shoulder-tap animation
 - Mixamo/custom animation experiments
 - lighting and baked-light tests
 - visual identity pass
