@@ -1,18 +1,38 @@
-import * as THREE from 'three';
-
 export class CollisionWorld {
   constructor() {
-    this.blockers = [];
+    this.colliders = [];
   }
 
-  addBox(minX, maxX, minZ, maxZ) {
-    this.blockers.push({ minX, maxX, minZ, maxZ });
+  addBox({
+    center,
+    size,
+    movement = true,
+    sight = true,
+    label = 'collider',
+  }) {
+    const [x, y, z] = center;
+    const [sx, sy, sz] = size;
+
+    this.colliders.push({
+      label,
+      minX: x - sx * 0.5,
+      maxX: x + sx * 0.5,
+      minY: y - sy * 0.5,
+      maxY: y + sy * 0.5,
+      minZ: z - sz * 0.5,
+      maxZ: z + sz * 0.5,
+      movement,
+      sight,
+    });
   }
 
   containsPoint(x, z, padding = 0) {
-    return this.blockers.some(b =>
-      x > b.minX - padding && x < b.maxX + padding &&
-      z > b.minZ - padding && z < b.maxZ + padding
+    return this.colliders.some(collider =>
+      collider.movement &&
+      x > collider.minX - padding &&
+      x < collider.maxX + padding &&
+      z > collider.minZ - padding &&
+      z < collider.maxZ + padding
     );
   }
 
@@ -20,27 +40,45 @@ export class CollisionWorld {
     const next = position.clone();
 
     const candidateX = next.x + delta.x;
-    if (!this.containsPoint(candidateX, next.z, radius)) next.x = candidateX;
+    if (!this.containsPoint(candidateX, next.z, radius)) {
+      next.x = candidateX;
+    }
 
     const candidateZ = next.z + delta.z;
-    if (!this.containsPoint(next.x, candidateZ, radius)) next.z = candidateZ;
+    if (!this.containsPoint(next.x, candidateZ, radius)) {
+      next.z = candidateZ;
+    }
 
     return next;
   }
 
-  blocksSegment(from, to) {
-    const dir = new THREE.Vector2(to.x - from.x, to.z - from.z);
-    const length = dir.length();
-    if (length <= 0.001) return false;
-    dir.normalize();
+  blocksSight(from, to) {
+    const dx = to.x - from.x;
+    const dz = to.z - from.z;
+    const horizontalDistance = Math.hypot(dx, dz);
+    if (horizontalDistance <= 0.001) return false;
 
-    const steps = Math.ceil(length / 0.2);
+    const steps = Math.max(2, Math.ceil(horizontalDistance / 0.08));
+
     for (let i = 1; i < steps; i++) {
       const t = i / steps;
-      const x = from.x + (to.x - from.x) * t;
-      const z = from.z + (to.z - from.z) * t;
-      if (this.containsPoint(x, z, 0.02)) return true;
+      const x = from.x + dx * t;
+      const y = from.y + (to.y - from.y) * t;
+      const z = from.z + dz * t;
+
+      const blocked = this.colliders.some(collider =>
+        collider.sight &&
+        x >= collider.minX &&
+        x <= collider.maxX &&
+        z >= collider.minZ &&
+        z <= collider.maxZ &&
+        y >= collider.minY &&
+        y <= collider.maxY
+      );
+
+      if (blocked) return true;
     }
+
     return false;
   }
 }
