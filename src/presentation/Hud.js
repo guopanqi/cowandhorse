@@ -31,77 +31,131 @@ export class Hud {
       </div>
     `;
 
-    this.clock = root.querySelector('[data-clock]');
-    this.objective = root.querySelector('[data-objective]');
-    this.subtitle = root.querySelector('[data-subtitle]');
-    this.energy = root.querySelector('[data-energy]');
-    this.energyText = root.querySelector('[data-energy-text]');
-    this.danger = root.querySelector('[data-danger]');
-    this.dangerText = root.querySelector('[data-danger-text]');
-    this.stance = root.querySelector('[data-stance]');
-    this.announcement = root.querySelector('[data-announcement]');
-    this.result = root.querySelector('[data-result]');
+    this.clock =
+      root.querySelector('[data-clock]');
+    this.objective =
+      root.querySelector('[data-objective]');
+    this.subtitle =
+      root.querySelector('[data-subtitle]');
+    this.energy =
+      root.querySelector('[data-energy]');
+    this.energyText =
+      root.querySelector('[data-energy-text]');
+    this.danger =
+      root.querySelector('[data-danger]');
+    this.dangerText =
+      root.querySelector('[data-danger-text]');
+    this.stance =
+      root.querySelector('[data-stance]');
+    this.announcement =
+      root.querySelector('[data-announcement]');
+    this.result =
+      root.querySelector('[data-result]');
+
     this.announceTimer = 0;
   }
 
-  update({
-    clock,
-    resources,
-    phase,
-    maxDetection = 0,
-    isChased = false,
-    isCrouched = false,
-  }, dt) {
-    this.clock.textContent = clock.formatted;
+  update(
+    {
+      clock,
+      resources,
+      phase,
+      maxDetection = 0,
+      isChased = false,
+      isCrouched = false,
+    },
+    dt,
+  ) {
+    this.clock.textContent =
+      clock.formatted;
 
-    this.energy.style.width = `${resources.energy}%`;
-    this.energyText.textContent = Math.round(resources.energy);
+    this.energy.style.width =
+      `${resources.energy}%`;
 
-    this.danger.style.width = `${Math.min(100, maxDetection * 100)}%`;
-    this.dangerText.textContent = isChased
-      ? '追捕中'
-      : maxDetection > 0.72
-        ? '即将暴露'
-        : maxDetection > 0.28
-          ? '被注意'
-          : '安全';
+    this.energyText.textContent =
+      Math.round(resources.energy);
 
-    this.stance.textContent = isCrouched ? '蹲伏' : '站立';
+    this.danger.style.width =
+      `${Math.min(
+        100,
+        maxDetection * 100,
+      )}%`;
+
+    this.dangerText.textContent =
+      isChased
+        ? '追捕中'
+        : maxDetection > 0.72
+          ? '即将暴露'
+          : maxDetection > 0.28
+            ? '被注意'
+            : '安全';
+
+    this.stance.textContent =
+      isCrouched
+        ? '蹲伏'
+        : '站立';
 
     if (phase === 'prep') {
       const remain = Math.max(
         0,
-        Math.ceil(18 * 3600 - clock.seconds),
+        Math.ceil(
+          18 * 3600 -
+            clock.seconds,
+        ),
       );
-      this.objective.textContent = `距离下班还有 ${remain} 秒`;
+
+      this.objective.textContent =
+        `距离下班还有 ${remain} 秒`;
+
       this.subtitle.textContent =
-        '可以在工位附近移动。18:00 后才能正式离开。';
+        '可以在工位附近移动。观察一下领导都在干什么。';
     } else if (phase === 'escape') {
-      this.objective.textContent = '离开办公室';
-      this.subtitle.textContent = isChased
-        ? '甩掉他。离开视线后警戒会逐渐恢复。'
-        : '利用桌面与隔板遮挡视线。蹲伏时更容易藏住。';
+      this.objective.textContent =
+        '离开办公室';
+
+      this.subtitle.textContent =
+        isChased
+          ? '甩掉他。利用拐角和高柜切断视线。'
+          : '左边掩体多，中央最快，右边要看经理的节奏。';
+    } else if (phase === 'capture') {
+      this.objective.textContent =
+        '被抓住了';
+
+      this.subtitle.textContent =
+        '……';
+
+      this.dangerText.textContent =
+        '完了';
     } else if (phase === 'minigame') {
-      this.objective.textContent = '加班中';
-      this.subtitle.textContent = '处理完，继续逃。';
+      this.objective.textContent =
+        '加班中';
+
+      this.subtitle.textContent =
+        '处理得越好，浪费的时间越少。';
     }
 
     if (this.announceTimer > 0) {
       this.announceTimer -= dt;
+
       if (this.announceTimer <= 0) {
-        this.announcement.classList.remove('show');
+        this.announcement.classList.remove(
+          'show',
+        );
       }
     }
   }
 
   announce(text) {
     this.announcement.textContent = text;
-    this.announcement.classList.add('show');
+    this.announcement.classList.add(
+      'show',
+    );
     this.announceTimer = 2.2;
   }
 
   showResult(title, detail) {
     this.result.hidden = false;
+
     this.result.innerHTML = `
       <p class="eyebrow">END OF DAY</p>
       <h2>${title}</h2>
