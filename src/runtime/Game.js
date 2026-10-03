@@ -6,6 +6,8 @@ import { EncounterSystem } from '../game/EncounterSystem.js';
 import { CaptureSequence } from '../game/CaptureSequence.js';
 import { OfficeLevel } from '../world/OfficeLevel.js';
 import { LevelLoader } from '../levels/LevelLoader.js';
+import { EditorSession } from '../editor/EditorSession.js';
+import { EditorController } from '../editor/EditorController.js';
 import { FollowCamera } from '../presentation/FollowCamera.js';
 import { Hud } from '../presentation/Hud.js';
 import { WorldBubbleLayer } from '../presentation/WorldBubbleLayer.js';
@@ -20,6 +22,7 @@ export class Game {
     this.frameHandle = null;
     this.lastTime = 0;
     this.phase = 'boot';
+    this.mode = 'play';
   }
 
   async start() {
@@ -29,24 +32,46 @@ export class Game {
         <div class="hud-layer" data-hud></div>
         <div class="mobile-input-layer" data-mobile-input></div>
         <div class="minigame-layer" data-minigame></div>
+
+        <button class="editor-launch" data-editor-launch type="button">
+          EDIT
+        </button>
+
+        <div class="editor-layer" data-editor-layer></div>
       </div>
     `;
 
     this.shell =
-      this.root.querySelector('.game-shell');
+      this.root.querySelector(
+        '.game-shell',
+      );
+
+    this.hudLayer =
+      this.root.querySelector(
+        '[data-hud]',
+      );
+
+    this.editorLaunch =
+      this.root.querySelector(
+        '[data-editor-launch]',
+      );
 
     this.input = new Input();
 
     this.renderer = new Renderer(
-      this.root.querySelector('[data-stage]'),
+      this.root.querySelector(
+        '[data-stage]',
+      ),
     );
 
-    this.clock = new GameClock();
+    this.clock =
+      new GameClock();
 
-    this.resources = new ResourceSystem({
-      energy: 100,
-      failHour: 22,
-    });
+    this.resources =
+      new ResourceSystem({
+        energy: 100,
+        failHour: 22,
+      });
 
     this.minigames =
       new MinigameManager(
@@ -69,35 +94,68 @@ export class Game {
       new EncounterSystem({
         clock: this.clock,
         resources: this.resources,
-        minigames: this.minigames,
+        minigames:
+          this.minigames,
       });
 
-    this.levelLoader = new LevelLoader();
+    this.levelLoader =
+      new LevelLoader();
 
-    const levelData =
-      await this.levelLoader.loadPublished(
-        'office-01',
+    this.editorSession =
+      new EditorSession({
+        loader:
+          this.levelLoader,
+      });
+
+    const params =
+      new URLSearchParams(
+        window.location.search,
       );
 
-    this.level = new OfficeLevel({
-      scene: this.renderer.scene,
-      input: this.input,
-      data: levelData,
-    });
+    const levelId =
+      params.get('level') ??
+      'office-01';
 
-    this.camera = new FollowCamera(
-      this.renderer.camera,
+    const editRequested =
+      params.get('edit') === '1';
+
+    const published =
+      await this.levelLoader
+        .loadPublished(levelId);
+
+    const draft =
+      editRequested
+        ? this.editorSession
+            .loadDraft(levelId)
+        : null;
+
+    this.editorSession.setLevel(
+      draft ?? published,
     );
+
+    this.currentLevelData =
+      this.editorSession.level;
+
+    this.createLevel(
+      this.currentLevelData,
+    );
+
+    this.camera =
+      new FollowCamera(
+        this.renderer.camera,
+      );
 
     this.camera.snap(
       this.level.player.position,
     );
 
     this.hud = new Hud(
-      this.root.querySelector('[data-hud]'),
+      this.hudLayer,
       {
         onRestart: () => {
-          this.input.pressVirtual('KeyR');
+          this.input.pressVirtual(
+            'KeyR',
+          );
         },
       },
     );
@@ -111,7 +169,8 @@ export class Game {
       );
 
     this.hasTouch =
-      navigator.maxTouchPoints > 0 ||
+      navigator.maxTouchPoints >
+        0 ||
       window.matchMedia(
         '(pointer: coarse)',
       ).matches;
@@ -128,12 +187,247 @@ export class Game {
         bubbles: this.bubbles,
       });
 
-    this.phase = 'prep';
-    this.lastTime = performance.now();
+    this.editor =
+      new EditorController({
+        root:
+          this.root.querySelector(
+            '[data-editor-layer]',
+          ),
+        renderer:
+          this.renderer,
+        session:
+          this.editorSession,
+        loader:
+          this.levelLoader,
 
-    this.loop = this.loop.bind(this);
+        onPlay: () =>
+          this.enterPlayMode(),
+
+        onRebuild:
+          async (
+            level,
+            preserveRef,
+          ) => {
+            this.currentLevelData =
+              level;
+
+            await this.rebuildLevel({
+              editorMode: true,
+              preserveRef,
+            });
+          },
+
+        onReplaceLevel:
+          async level => {
+            if (
+              this.editorSession
+                .level !== level
+            ) {
+              this.editorSession
+                .setLevel(level);
+            }
+
+            this.currentLevelData =
+              this.editorSession.level;
+
+            await this.rebuildLevel({
+              editorMode: true,
+            });
+          },
+      });
+
+    this.editorLaunch
+      .addEventListener(
+        'click',
+        () =>
+          this.enterEditorMode(),
+      );
+
+    this.onGlobalKeyDown =
+      event => {
+        if (
+          event.code !== 'Tab' ||
+          this.mode !== 'play'
+        ) {
+          return;
+        }
+
+        const tag =
+          document.activeElement
+            ?.tagName;
+
+        if (
+          tag === 'INPUT' ||
+          tag === 'TEXTAREA' ||
+          tag === 'SELECT'
+        ) {
+          return;
+        }
+
+        if (
+          this.phase ===
+            'minigame' ||
+          this.phase ===
+            'capture'
+        ) {
+          return;
+        }
+
+        event.preventDefault();
+        this.enterEditorMode();
+      };
+
+    window.addEventListener(
+      'keydown',
+      this.onGlobalKeyDown,
+    );
+
+    this.lastTime =
+      performance.now();
+
+    this.loop =
+      this.loop.bind(this);
+
+    if (editRequested) {
+      await this.enterEditorMode();
+    } else {
+      this.enterPlayMode({
+        rebuild: false,
+      });
+    }
+
     this.frameHandle =
-      requestAnimationFrame(this.loop);
+      requestAnimationFrame(
+        this.loop,
+      );
+  }
+
+  createLevel(data) {
+    this.level?.dispose?.();
+
+    this.bubbles?.clear?.();
+
+    this.level =
+      new OfficeLevel({
+        scene:
+          this.renderer.scene,
+        input: this.input,
+        data,
+      });
+  }
+
+  async rebuildLevel({
+    editorMode =
+      this.mode === 'edit',
+    preserveRef = null,
+  } = {}) {
+    this.createLevel(
+      this.editorSession.level,
+    );
+
+    if (editorMode) {
+      this.level.setEditorMode(
+        true,
+      );
+
+      this.editor?.bindLevel(
+        this.editorSession.level,
+        this.level,
+        preserveRef,
+      );
+    } else {
+      this.camera.snap(
+        this.level.player.position,
+      );
+    }
+  }
+
+  async enterEditorMode() {
+    if (
+      this.mode === 'edit'
+    ) {
+      return;
+    }
+
+    this.mode = 'edit';
+    this.phase = 'editor';
+
+    this.capture?.reset?.();
+    this.minigames?.stop?.();
+
+    this.level.reset();
+    this.level.setEditorMode(
+      true,
+    );
+
+    this.hudLayer.classList.add(
+      'editor-hidden',
+    );
+
+    this.editorLaunch.hidden =
+      true;
+
+    this.mobileControls
+      ?.setVisible(false);
+
+    this.bubbles
+      ?.setVisible(false);
+
+    this.editor.bindLevel(
+      this.editorSession.level,
+      this.level,
+    );
+
+    await this.editor.activate();
+  }
+
+  async enterPlayMode({
+    rebuild = true,
+  } = {}) {
+    this.mode = 'play';
+
+    this.editor?.deactivate?.();
+
+    if (rebuild) {
+      await this.rebuildLevel({
+        editorMode: false,
+      });
+    } else {
+      this.level.setEditorMode(
+        false,
+      );
+    }
+
+    this.capture?.reset?.();
+    this.minigames?.stop?.();
+
+    this.clock.reset();
+    this.resources.reset();
+    this.level.reset();
+
+    this.camera.snap(
+      this.level.player.position,
+    );
+
+    this.hud?.hideResult?.();
+
+    this.hudLayer.classList.remove(
+      'editor-hidden',
+    );
+
+    this.editorLaunch.hidden =
+      false;
+
+    this.bubbles
+      ?.setVisible(true);
+
+    this.phase = 'prep';
+    this.lastTime =
+      performance.now();
+
+    this.hud?.announce?.(
+      '17:59:50',
+    );
   }
 
   loop(now) {
@@ -148,10 +442,34 @@ export class Game {
 
     this.lastTime = now;
 
+    if (this.mode === 'edit') {
+      this.level.update(
+        dt,
+        { phase: 'editor' },
+      );
+
+      this.editor.update();
+      this.renderer.render();
+      this.input.endFrame();
+
+      this.frameHandle =
+        requestAnimationFrame(
+          this.loop,
+        );
+
+      return;
+    }
+
     if (
-      this.input.consume('KeyR') &&
-      (this.phase === 'success' ||
-        this.phase === 'failure')
+      this.input.consume(
+        'KeyR',
+      ) &&
+      (
+        this.phase ===
+          'success' ||
+        this.phase ===
+          'failure'
+      )
     ) {
       this.reset();
     }
@@ -174,12 +492,17 @@ export class Game {
     }
 
     const levelState =
-      this.level.update(dt, {
-        phase: this.phase,
-      });
+      this.level.update(
+        dt,
+        {
+          phase:
+            this.phase,
+        },
+      );
 
     if (
-      this.phase === 'escape' &&
+      this.phase ===
+        'escape' &&
       levelState.caughtBy
     ) {
       this.beginCapture(
@@ -187,20 +510,28 @@ export class Game {
       );
     }
 
-    if (this.phase === 'capture') {
+    if (
+      this.phase ===
+      'capture'
+    ) {
       this.capture.update(dt);
     }
 
     if (
-      this.phase === 'escape' &&
-      levelState.extraction?.escaped
+      this.phase ===
+        'escape' &&
+      levelState.extraction
+        ?.escaped
     ) {
       this.finishSuccess();
     }
 
     if (
-      (this.phase === 'prep' ||
-        this.phase === 'escape') &&
+      (
+        this.phase === 'prep' ||
+        this.phase ===
+          'escape'
+      ) &&
       this.resources.failed(
         this.clock,
       )
@@ -211,7 +542,8 @@ export class Game {
     this.minigames.update(dt);
 
     this.camera.update(
-      this.level.player.position,
+      this.level.player
+        .position,
       dt,
     );
 
@@ -219,35 +551,46 @@ export class Game {
       this.level.agents,
     );
 
-    this.mobileControls.setVisible(
-      this.hasTouch &&
-      (this.phase === 'prep' ||
-        this.phase === 'escape'),
-    );
+    this.mobileControls
+      .setVisible(
+        this.hasTouch &&
+        (
+          this.phase ===
+            'prep' ||
+          this.phase ===
+            'escape'
+        ),
+      );
 
-    this.mobileControls.setCrouched(
-      this.level.player.isCrouched,
-    );
+    this.mobileControls
+      .setCrouched(
+        this.level.player
+          .isCrouched,
+      );
 
     this.hud.update(
       {
         clock: this.clock,
-        resources: this.resources,
+        resources:
+          this.resources,
         phase: this.phase,
         maxDetection:
-          levelState.maxDetection,
+          levelState
+            .maxDetection,
         isChased:
-          levelState.isChased,
+          levelState
+            .isChased,
         isCrouched:
-          this.level.player.isCrouched,
+          this.level.player
+            .isCrouched,
         extraction:
-          levelState.extraction,
+          levelState
+            .extraction,
       },
       dt,
     );
 
     this.renderer.render();
-
     this.input.endFrame();
 
     this.frameHandle =
@@ -258,8 +601,10 @@ export class Game {
 
   beginCapture(npc) {
     if (
-      this.phase === 'capture' ||
-      this.phase === 'minigame'
+      this.phase ===
+        'capture' ||
+      this.phase ===
+        'minigame'
     ) {
       return;
     }
@@ -285,11 +630,13 @@ export class Game {
       ({ minutes }) => {
         npc.releaseAfterCapture();
 
-        this.level.player.visual.setPose(
-          this.level.player.isCrouched
-            ? 'crouch'
-            : 'idle',
-        );
+        this.level.player
+          .visual.setPose(
+            this.level.player
+              .isCrouched
+              ? 'crouch'
+              : 'idle',
+          );
 
         if (
           this.resources.failed(
@@ -300,7 +647,8 @@ export class Game {
           return;
         }
 
-        this.phase = 'escape';
+        this.phase =
+          'escape';
 
         this.hud.announce(
           `+${minutes} 分钟 · 继续逃`,
@@ -310,7 +658,10 @@ export class Game {
   }
 
   finishSuccess() {
-    if (this.phase === 'success') {
+    if (
+      this.phase ===
+      'success'
+    ) {
       return;
     }
 
@@ -323,7 +674,10 @@ export class Game {
   }
 
   finishFailure() {
-    if (this.phase === 'failure') {
+    if (
+      this.phase ===
+      'failure'
+    ) {
       return;
     }
 
@@ -332,7 +686,8 @@ export class Game {
     this.minigames.stop();
 
     const reason =
-      this.resources.energy <= 0
+      this.resources.energy <=
+      0
         ? '精力耗尽。你默默坐回了工位。'
         : '太晚了。今天基本算住公司了。';
 
@@ -351,7 +706,8 @@ export class Game {
     this.level.reset();
 
     this.camera.snap(
-      this.level.player.position,
+      this.level.player
+        .position,
     );
 
     this.hud.hideResult();
