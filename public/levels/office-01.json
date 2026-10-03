@@ -1511,7 +1511,21 @@
         6.55
       ],
       "linkedObjectId": "player-desk",
-      "enabled": true
+      "enabled": true,
+      "safe": true,
+      "range": 0.95,
+      "pose": "sit",
+      "facing": [
+        0,
+        0,
+        -1
+      ],
+      "startActive": true,
+      "presentation": {
+        "enterLabel": "回工位",
+        "activeLabel": "工作中",
+        "exitLabel": "起身"
+      }
     },
     {
       "id": "fake-work-west",
@@ -1522,7 +1536,15 @@
         4.78
       ],
       "linkedObjectId": "team-w1",
-      "enabled": true
+      "enabled": true,
+      "safe": true,
+      "range": 0.95,
+      "pose": "sit",
+      "facing": [
+        0,
+        0,
+        -1
+      ]
     },
     {
       "id": "fake-work-east",
@@ -1533,7 +1555,15 @@
         4.95
       ],
       "linkedObjectId": "collab-a",
-      "enabled": true
+      "enabled": true,
+      "safe": true,
+      "range": 0.95,
+      "pose": "sit",
+      "facing": [
+        0,
+        0,
+        -1
+      ]
     },
     {
       "id": "hide-boss-corner",
@@ -1543,7 +1573,34 @@
         0,
         -3.2
       ],
-      "enabled": true
+      "enabled": true,
+      "safe": true,
+      "range": 0.95,
+      "pose": "crouch"
+    },
+    {
+      "id": "drink-water-cooler",
+      "type": "drinkWater",
+      "position": [
+        8.15,
+        0,
+        1.95
+      ],
+      "linkedObjectId": "water-cooler",
+      "enabled": true,
+      "safe": true,
+      "range": 0.95,
+      "pose": "tea",
+      "facing": [
+        1,
+        0,
+        0
+      ],
+      "presentation": {
+        "enterLabel": "喝水",
+        "activeLabel": "喝水中",
+        "exitLabel": "离开"
+      }
     }
   ]
 }
