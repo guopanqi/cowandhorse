@@ -12,7 +12,11 @@ export class OfficeLevel {
     this.data = data;
 
     this.collision = new CollisionWorld();
-    this.builder = new OfficeBuilder(scene, this.collision, data);
+    this.builder = new OfficeBuilder(
+      scene,
+      this.collision,
+      data,
+    );
     this.builder.build();
 
     this.player = new PlayerController({
@@ -23,39 +27,66 @@ export class OfficeLevel {
     scene.add(this.player.visual.group);
 
     this.npcs = data.npcs.map(config => {
-      const agent = new NpcAgent(config, this.collision);
+      const agent = new NpcAgent(
+        config,
+        this.collision,
+      );
       const cone = new VisionConeVisual(agent);
+
       scene.add(cone.mesh);
       scene.add(agent.visual.group);
+
       return { agent, cone };
     });
   }
 
+  get agents() {
+    return this.npcs.map(entry => entry.agent);
+  }
+
   update(dt, { phase }) {
-    const canMove = phase === 'prep' || phase === 'escape';
-    const moveRegion = phase === 'prep' ? this.data.prepZone : null;
+    const canMove =
+      phase === 'prep' || phase === 'escape';
+
+    const moveRegion =
+      phase === 'prep'
+        ? this.data.prepZone
+        : null;
 
     this.player.update(dt, {
       enabled: canMove,
       moveRegion,
     });
 
-    const worldActive = phase === 'prep' || phase === 'escape';
+    const worldActive =
+      phase === 'prep' || phase === 'escape';
+
     let caughtBy = null;
     let maxDetection = 0;
     let isChased = false;
 
     for (const { agent, cone } of this.npcs) {
       if (worldActive) {
-        agent.update(dt, this.player, phase === 'escape');
+        agent.update(
+          dt,
+          this.player,
+          phase === 'escape',
+        );
       }
 
       cone.update();
 
-      maxDetection = Math.max(maxDetection, agent.detection);
+      maxDetection = Math.max(
+        maxDetection,
+        agent.detection,
+      );
+
       isChased ||= agent.state === 'chase';
 
-      if (phase === 'escape' && agent.justCaught) {
+      if (
+        phase === 'escape' &&
+        agent.justCaught
+      ) {
         caughtBy = agent;
       }
     }
@@ -68,7 +99,10 @@ export class OfficeLevel {
   }
 
   isAtExtraction() {
-    const target = new THREE.Vector3(...this.data.extraction.position);
+    const target = new THREE.Vector3(
+      ...this.data.extraction.position,
+    );
+
     return (
       this.player.position.distanceTo(target) <=
       this.data.extraction.radius
@@ -76,7 +110,9 @@ export class OfficeLevel {
   }
 
   reset() {
-    this.player.reset(this.data.playerSpawn);
+    this.player.reset(
+      this.data.playerSpawn,
+    );
 
     for (const { agent, cone } of this.npcs) {
       agent.reset();
