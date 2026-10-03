@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { CollisionWorld } from './CollisionWorld.js';
 import { DataDrivenOfficeBuilder } from './DataDrivenOfficeBuilder.js';
 import { ExtractionZone } from './ExtractionZone.js';
@@ -12,6 +13,10 @@ export class OfficeLevel {
     this.scene = scene;
     this.input = input;
     this.data = data;
+
+    this.runtimeGroup = new THREE.Group();
+    this.runtimeGroup.name = 'LevelRuntime';
+    this.scene.add(this.runtimeGroup);
 
     this.collision = new CollisionWorld();
 
@@ -33,7 +38,9 @@ export class OfficeLevel {
       collision: this.collision,
       spawn: data.playerSpawn,
     });
-    scene.add(this.player.visual.group);
+    this.runtimeGroup.add(
+      this.player.visual.group,
+    );
 
     this.npcs = data.npcs.map(config => {
       const agent = new NpcAgent(
@@ -49,8 +56,10 @@ export class OfficeLevel {
           this.player,
         );
 
-      scene.add(cone.mesh);
-      scene.add(agent.visual.group);
+      this.runtimeGroup.add(
+        cone.mesh,
+        agent.visual.group,
+      );
 
       return { agent, cone };
     });
@@ -67,12 +76,30 @@ export class OfficeLevel {
 
     this.events =
       new OfficeEventDirector(data);
+
+    this.editorMode = false;
   }
 
   get agents() {
     return this.npcs.map(
       entry => entry.agent,
     );
+  }
+
+  setEditorMode(value) {
+    this.editorMode = value;
+
+    this.player.visual.group.visible =
+      !value;
+
+    for (
+      const { agent, cone }
+      of this.npcs
+    ) {
+      agent.visual.group.visible = true;
+      cone.mesh.visible = true;
+      cone.update();
+    }
   }
 
   update(dt, { phase }) {
@@ -99,10 +126,8 @@ export class OfficeLevel {
     let isChased = false;
 
     for (
-      const {
-        agent,
-        cone,
-      } of this.npcs
+      const { agent, cone }
+      of this.npcs
     ) {
       if (worldActive) {
         agent.update(
@@ -138,15 +163,17 @@ export class OfficeLevel {
       );
 
     if (extraction.justCalled) {
-      this.events.handleExtractionCalled(
-        this.agents,
-      );
+      this.events
+        .handleExtractionCalled(
+          this.agents,
+        );
     }
 
-    this.builder.setExtractionState(
-      extraction.state,
-      extraction.progress,
-    );
+    this.builder
+      .setExtractionState(
+        extraction.state,
+        extraction.progress,
+      );
 
     return {
       caughtBy,
@@ -162,10 +189,8 @@ export class OfficeLevel {
     );
 
     for (
-      const {
-        agent,
-        cone,
-      } of this.npcs
+      const { agent, cone }
+      of this.npcs
     ) {
       agent.reset();
       cone.update();
@@ -174,9 +199,34 @@ export class OfficeLevel {
     this.extraction.reset();
     this.events.reset();
 
-    this.builder.setExtractionState(
-      'idle',
-      0,
+    this.builder
+      .setExtractionState(
+        'idle',
+        0,
+      );
+  }
+
+  dispose() {
+    this.scene.remove(
+      this.runtimeGroup,
     );
+
+    this.runtimeGroup.traverse(
+      object => {
+        object.geometry?.dispose?.();
+
+        if (
+          object.material &&
+          !Array.isArray(
+            object.material,
+          )
+        ) {
+          object.material.dispose?.();
+        }
+      },
+    );
+
+    this.builder.dispose();
+    this.npcs.length = 0;
   }
 }
