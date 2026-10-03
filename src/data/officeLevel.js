@@ -263,21 +263,27 @@ export const officeLevel = {
 
       routine: [
         {
-          position: [0, 0, 4.55],
-          action: 'inspect',
-          duration: 4.4,
-          facing: [0, 0, 1],
-        },
-        {
           position: [-8.45, 0, 5.85],
           action: 'print',
-          duration: 2.4,
+          duration: 1.8,
           facing: [-1, 0, 0],
+        },
+        {
+          position: [-5.15, 0, 3.25],
+          action: 'read',
+          duration: 1.4,
+          facing: [1, 0, 0],
+        },
+        {
+          position: [0, 0, 4.55],
+          action: 'inspect',
+          duration: 4.0,
+          facing: [0, 0, 1],
         },
         {
           position: [-5.25, 0, 1.15],
           action: 'check',
-          duration: 2.2,
+          duration: 2.0,
           facing: [1, 0, 0],
         },
         {
@@ -285,12 +291,6 @@ export const officeLevel = {
           action: 'inspect',
           duration: 2.0,
           facing: [0, 0, 1],
-        },
-        {
-          position: [-5.15, 0, 3.25],
-          action: 'read',
-          duration: 1.6,
-          facing: [1, 0, 0],
         },
       ],
     },
@@ -312,9 +312,15 @@ export const officeLevel = {
 
       routine: [
         {
+          position: [5.15, 0, 3.25],
+          action: 'check',
+          duration: 1.5,
+          facing: [-1, 0, 0],
+        },
+        {
           position: [0, 0, 1.35],
           action: 'inspect',
-          duration: 4.8,
+          duration: 5.0,
           facing: [0, 0, 1],
         },
         {
@@ -322,12 +328,6 @@ export const officeLevel = {
           action: 'tea',
           duration: 3.2,
           facing: [1, 0, 0],
-        },
-        {
-          position: [5.15, 0, 3.25],
-          action: 'check',
-          duration: 1.5,
-          facing: [-1, 0, 0],
         },
         {
           position: [6.55, 0, -3.58],
