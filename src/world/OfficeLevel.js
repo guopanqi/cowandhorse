@@ -32,7 +32,7 @@ export class OfficeLevel {
   }
 
   update(dt, { phase, secondsAfterSix }) {
-    const playerEnabled = phase === 'prep' || phase === 'escape';
+    const playerEnabled = phase === 'escape';
     this.player.update(dt, playerEnabled);
 
     let caughtBy = null;
