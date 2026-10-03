@@ -3,7 +3,6 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { validateLevel } from './LevelValidator.js';
 import {
-  PALETTE,
   ROUTINE_ACTIONS,
   INTERACTION_TYPES,
   createEnvironmentObject,
@@ -14,6 +13,32 @@ const clone = value =>
   typeof structuredClone === 'function'
     ? structuredClone(value)
     : JSON.parse(JSON.stringify(value));
+
+const SPACE_ITEMS = [
+  ['desk', '工位'],
+  ['tallCover', '高柜'],
+  ['wall', '实墙'],
+  ['glassWall', '玻璃墙'],
+  ['glassRoom', '玻璃房'],
+  ['printer', '打印机'],
+  ['counter', '柜台'],
+  ['waterCooler', '饮水机'],
+  ['plant', '盆栽'],
+  ['bench', '长椅'],
+];
+
+const GAMEPLAY_ITEMS = [
+  ['interaction:fakeWork', '假装工作'],
+  ['interaction:hideSpot', '躲藏点'],
+  ['interaction:distraction', '诱饵点'],
+];
+
+const WORKSPACES = [
+  ['layout', '布局'],
+  ['ai', 'AI'],
+  ['gameplay', '玩法'],
+  ['analysis', '分析'],
+];
 
 export class EditorController {
   constructor({
@@ -40,9 +65,18 @@ export class EditorController {
     this.level = null;
     this.officeLevel = null;
     this.active = false;
+    this.workspace = 'layout';
+    this.focusNpcId = null;
     this.selectedRef = null;
     this.selectedObject = null;
     this.linkSourceId = null;
+    this.analysisLayers = {
+      nav: true,
+      routines: true,
+      interactions: true,
+      runs: true,
+    };
+
     this.helperGroup = new THREE.Group();
     this.helperGroup.name = 'EditorHelpers';
     this.renderer.scene.add(this.helperGroup);
@@ -58,8 +92,7 @@ export class EditorController {
     this.orbit.enabled = false;
     this.orbit.enableDamping = true;
     this.orbit.dampingFactor = 0.08;
-    this.orbit.maxPolarAngle =
-      Math.PI * 0.48;
+    this.orbit.maxPolarAngle = Math.PI * 0.48;
     this.orbit.minDistance = 4;
     this.orbit.maxDistance = 32;
 
@@ -70,7 +103,9 @@ export class EditorController {
     this.transform.enabled = false;
     this.transform.setMode('translate');
     this.transform.showY = false;
-    this.renderer.scene.add(this.transform.getHelper());
+    this.renderer.scene.add(
+      this.transform.getHelper(),
+    );
 
     this.transform.addEventListener(
       'dragging-changed',
@@ -85,6 +120,7 @@ export class EditorController {
       () => {
         this.writeSelectedTransform();
         this.session.markDirty();
+        this.updateChrome();
         this.renderInspector();
       },
     );
@@ -94,8 +130,7 @@ export class EditorController {
       () => {
         this.commitMutation({
           rebuild: true,
-          preserve:
-            this.selectedRef,
+          preserve: this.selectedRef,
         });
       },
     );
@@ -115,164 +150,167 @@ export class EditorController {
   buildUi() {
     this.root.innerHTML = `
       <div class="editor-ui">
-        <header class="editor-toolbar">
-          <div class="editor-toolbar-group">
-            <button class="editor-primary" data-editor-action="play">▶ PLAY</button>
-            <button data-editor-action="translate">移动</button>
-            <button data-editor-action="rotate">旋转</button>
-          </div>
+        <header class="editor-toolbar editor-toolbar-v2">
+          <button class="editor-play" data-editor-action="play" type="button">
+            <span>▶</span> PLAY
+          </button>
 
-          <div class="editor-toolbar-group editor-level-picker">
+          <nav class="editor-workspaces" aria-label="编辑工作区">
+            ${WORKSPACES.map(
+              ([id, label]) => `
+                <button
+                  type="button"
+                  data-editor-workspace="${id}"
+                  class="${id === this.workspace ? 'active' : ''}"
+                >
+                  ${label}
+                </button>
+              `,
+            ).join('')}
+          </nav>
+
+          <div class="editor-level-switcher">
+            <span class="editor-toolbar-label">关卡</span>
             <select data-editor-levels></select>
-            <button data-editor-action="load">加载</button>
+            <button type="button" data-editor-action="load">打开</button>
           </div>
 
-          <div class="editor-toolbar-group">
-            <button data-editor-action="save">Save Draft</button>
-            <button data-editor-action="export">Export</button>
-            <button data-editor-action="import">Import</button>
-            <button data-editor-action="duplicate-level">Duplicate</button>
-            <button data-editor-action="revert">Revert</button>
-            <button data-editor-action="clear-runs">Clear Runs</button>
-            <button class="editor-publish" data-editor-action="publish">Publish</button>
-          </div>
+          <div class="editor-toolbar-spacer"></div>
 
-          <div class="editor-validation-pill" data-editor-validation-pill>
+          <button class="editor-save" data-editor-action="save" type="button">
+            <span data-editor-save-label>保存草稿</span>
+          </button>
+
+          <button class="editor-publish-v2" data-editor-action="publish" type="button">
+            <span class="editor-github-dot" data-github-dot></span>
+            发布
+          </button>
+
+          <details class="editor-more" data-editor-more>
+            <summary aria-label="更多操作">•••</summary>
+            <div class="editor-more-menu">
+              <button type="button" data-editor-action="export">导出 JSON</button>
+              <button type="button" data-editor-action="import">导入 JSON</button>
+              <button type="button" data-editor-action="duplicate-level">复制关卡</button>
+              <button type="button" data-editor-action="revert">恢复正式版</button>
+              <button type="button" data-editor-action="clear-runs">清除试玩轨迹</button>
+            </div>
+          </details>
+
+          <button class="editor-validation-pill" data-editor-validation-pill data-editor-action="show-validation" type="button">
             未验证
-          </div>
+          </button>
         </header>
 
-        <aside class="editor-palette" data-editor-palette></aside>
+        <aside class="editor-tool-panel">
+          <div class="editor-panel-heading">
+            <div>
+              <p class="editor-kicker" data-editor-workspace-kicker>LAYOUT</p>
+              <h2 data-editor-workspace-title>布局</h2>
+            </div>
+            <div class="editor-transform-toggle">
+              <button type="button" data-editor-action="translate" class="active" title="W">移动</button>
+              <button type="button" data-editor-action="rotate" title="E">旋转</button>
+            </div>
+          </div>
 
-        <aside class="editor-inspector">
+          <div data-editor-tools></div>
+        </aside>
+
+        <aside class="editor-inspector editor-inspector-v2">
           <div data-editor-inspector></div>
         </aside>
 
-        <section class="editor-validation-panel" data-editor-validation></section>
+        <section class="editor-validation-panel editor-validation-v2" data-editor-validation></section>
 
-        <div class="editor-help">
-          点击选择 · W 移动 · E 旋转 · Delete 删除 · Ctrl/Cmd+D 复制 · Tab 试玩
+        <div class="editor-context-help" data-editor-help>
+          布局：点击物件选择 · W 移动 · E 旋转 · ⌘/Ctrl+D 复制
         </div>
 
         <input type="file" accept="application/json" data-editor-import hidden />
 
         <dialog class="editor-publish-dialog" data-editor-publish-dialog>
           <form method="dialog" data-editor-publish-form>
-            <p class="editor-kicker">PUBLISH TO GITHUB</p>
+            <p class="editor-kicker">GITHUB</p>
             <h3>发布关卡</h3>
-            <p>需要一个只对 guopanqi/cowandhorse 有 Contents 写权限的 fine-grained token。Token 只用于这次请求。</p>
-            <label>
-              GitHub token
-              <input type="password" autocomplete="off" data-editor-token required />
+            <p class="editor-dialog-copy">
+              发布会写入 <strong>guopanqi/cowandhorse</strong>，随后 GitHub Actions 自动验证并部署。
+            </p>
+
+            <div class="editor-token-row">
+              <label>
+                GitHub token
+                <input type="password" autocomplete="off" data-editor-token required />
+              </label>
+              <button type="button" data-editor-action="forget-token" class="editor-forget-token">
+                忘记 Token
+              </button>
+            </div>
+
+            <label class="editor-remember-token">
+              <input type="checkbox" data-editor-remember-token checked />
+              <span>
+                长期记住在这台设备
+                <small>保存在此浏览器 localStorage；仅建议私人设备使用。</small>
+              </span>
             </label>
+
             <label>
               Commit message
               <input type="text" data-editor-commit />
             </label>
+
             <div class="editor-dialog-actions">
               <button value="cancel">取消</button>
-              <button value="default" class="editor-primary" data-editor-publish-confirm>Publish</button>
+              <button value="default" class="editor-primary" data-editor-publish-confirm>
+                Publish
+              </button>
             </div>
-            <p data-editor-publish-status></p>
+
+            <p class="editor-publish-status" data-editor-publish-status></p>
           </form>
         </dialog>
       </div>
     `;
-
-    const paletteRoot =
-      this.root.querySelector(
-        '[data-editor-palette]',
-      );
-
-    paletteRoot.innerHTML =
-      PALETTE.map(
-        group => `
-          <section class="editor-palette-group">
-            <h3>${group.title}</h3>
-            <div class="editor-palette-grid">
-              ${group.items
-                .map(
-                  ([type, label]) => `
-                    <button data-editor-add="${type}">
-                      ${label}
-                    </button>
-                  `,
-                )
-                .join('')}
-            </div>
-          </section>
-        `,
-      ).join('') +
-      `
-        <section class="editor-palette-group">
-          <h3>AI</h3>
-          <label class="editor-field">
-            NPC
-            <select data-editor-routine-npc></select>
-          </label>
-          <p class="editor-mini-note">
-            “NPC 行为点”会添加到这里选中的角色日程末尾。
-          </p>
-        </section>
-      `;
   }
 
   bindUi() {
     this.ui = {
-      levels:
-        this.root.querySelector(
-          '[data-editor-levels]',
-        ),
-      palette:
-        this.root.querySelector(
-          '[data-editor-palette]',
-        ),
-      inspector:
-        this.root.querySelector(
-          '[data-editor-inspector]',
-        ),
-      validation:
-        this.root.querySelector(
-          '[data-editor-validation]',
-        ),
-      validationPill:
-        this.root.querySelector(
-          '[data-editor-validation-pill]',
-        ),
-      import:
-        this.root.querySelector(
-          '[data-editor-import]',
-        ),
-      routineNpc:
-        this.root.querySelector(
-          '[data-editor-routine-npc]',
-        ),
-      publishDialog:
-        this.root.querySelector(
-          '[data-editor-publish-dialog]',
-        ),
-      token:
-        this.root.querySelector(
-          '[data-editor-token]',
-        ),
-      commit:
-        this.root.querySelector(
-          '[data-editor-commit]',
-        ),
-      publishStatus:
-        this.root.querySelector(
-          '[data-editor-publish-status]',
-        ),
+      levels: this.root.querySelector('[data-editor-levels]'),
+      tools: this.root.querySelector('[data-editor-tools]'),
+      inspector: this.root.querySelector('[data-editor-inspector]'),
+      validation: this.root.querySelector('[data-editor-validation]'),
+      validationPill: this.root.querySelector('[data-editor-validation-pill]'),
+      import: this.root.querySelector('[data-editor-import]'),
+      workspaceKicker: this.root.querySelector('[data-editor-workspace-kicker]'),
+      workspaceTitle: this.root.querySelector('[data-editor-workspace-title]'),
+      help: this.root.querySelector('[data-editor-help]'),
+      saveLabel: this.root.querySelector('[data-editor-save-label]'),
+      githubDot: this.root.querySelector('[data-github-dot]'),
+      more: this.root.querySelector('[data-editor-more]'),
+      publishDialog: this.root.querySelector('[data-editor-publish-dialog]'),
+      token: this.root.querySelector('[data-editor-token]'),
+      rememberToken: this.root.querySelector('[data-editor-remember-token]'),
+      commit: this.root.querySelector('[data-editor-commit]'),
+      publishStatus: this.root.querySelector('[data-editor-publish-status]'),
     };
 
     this.root.addEventListener(
       'click',
       event => {
+        const workspaceButton =
+          event.target.closest('[data-editor-workspace]');
+
+        if (workspaceButton) {
+          this.setWorkspace(
+            workspaceButton.dataset.editorWorkspace,
+          );
+          return;
+        }
+
         const action =
-          event.target.closest(
-            '[data-editor-action]',
-          )?.dataset
-            .editorAction;
+          event.target.closest('[data-editor-action]')
+            ?.dataset.editorAction;
 
         if (action) {
           this.handleAction(action);
@@ -280,39 +318,25 @@ export class EditorController {
         }
 
         const add =
-          event.target.closest(
-            '[data-editor-add]',
-          )?.dataset
-            .editorAdd;
+          event.target.closest('[data-editor-add]')
+            ?.dataset.editorAdd;
 
         if (add) {
           this.addFromPalette(add);
           return;
         }
 
-        if (
-          event.target.closest(
-            '[data-editor-delete]',
-          )
-        ) {
+        if (event.target.closest('[data-editor-delete]')) {
           this.deleteSelected();
           return;
         }
 
-        if (
-          event.target.closest(
-            '[data-editor-duplicate]',
-          )
-        ) {
+        if (event.target.closest('[data-editor-duplicate]')) {
           this.duplicateSelected();
           return;
         }
 
-        if (
-          event.target.closest(
-            '[data-editor-link]',
-          )
-        ) {
+        if (event.target.closest('[data-editor-link]')) {
           this.startLink();
         }
       },
@@ -322,41 +346,53 @@ export class EditorController {
       'change',
       event => {
         if (
-          event.target.matches(
-            '[data-editor-level-field]',
-          )
+          event.target.matches('[data-editor-routine-npc]')
+        ) {
+          this.focusNpcId = event.target.value;
+          this.rebuildHelpers();
+          this.renderToolPanel();
+          return;
+        }
+
+        if (
+          event.target.matches('[data-editor-layer-toggle]')
+        ) {
+          const key =
+            event.target.dataset.editorLayerToggle;
+
+          this.analysisLayers[key] =
+            event.target.checked;
+
+          this.rebuildHelpers();
+          return;
+        }
+
+        if (
+          event.target.matches('[data-editor-level-field]')
         ) {
           const field =
-            event.target.dataset
-              .editorLevelField;
+            event.target.dataset.editorLevelField;
 
           this.level[field] =
             event.target.value;
 
           this.session.markDirty();
+          this.updateChrome();
           this.renderInspector();
           return;
         }
 
         if (
-          event.target.matches(
-            '[data-editor-param]',
-          )
+          event.target.matches('[data-editor-param]')
         ) {
-          this.applyInspectorParam(
-            event.target,
-          );
+          this.applyInspectorParam(event.target);
           return;
         }
 
         if (
-          event.target.matches(
-            '[data-editor-field]',
-          )
+          event.target.matches('[data-editor-field]')
         ) {
-          this.applyInspectorField(
-            event.target,
-          );
+          this.applyInspectorField(event.target);
         }
       },
     );
@@ -364,25 +400,17 @@ export class EditorController {
     this.ui.import.addEventListener(
       'change',
       async () => {
-        const file =
-          this.ui.import
-            .files?.[0];
+        const file = this.ui.import.files?.[0];
 
         if (!file) return;
 
         try {
           const level =
-            await this.session
-              .importFile(file);
+            await this.session.importFile(file);
 
-          await this.onReplaceLevel(
-            level,
-          );
+          await this.onReplaceLevel(level);
         } catch (error) {
-          this.setStatus(
-            error.message,
-            'error',
-          );
+          this.setStatus(error.message, 'error');
         } finally {
           this.ui.import.value = '';
         }
@@ -390,9 +418,7 @@ export class EditorController {
     );
 
     this.root
-      .querySelector(
-        '[data-editor-publish-confirm]',
-      )
+      .querySelector('[data-editor-publish-confirm]')
       .addEventListener(
         'click',
         async event => {
@@ -407,8 +433,7 @@ export class EditorController {
         if (!this.active) return;
 
         const tag =
-          document.activeElement
-            ?.tagName;
+          document.activeElement?.tagName;
 
         if (
           tag === 'INPUT' ||
@@ -421,26 +446,17 @@ export class EditorController {
         if (event.code === 'Tab') {
           event.preventDefault();
           this.onPlay?.();
-        } else if (
-          event.code === 'KeyW'
-        ) {
-          this.setTransformMode(
-            'translate',
-          );
-        } else if (
-          event.code === 'KeyE'
-        ) {
-          this.setTransformMode(
-            'rotate',
-          );
+        } else if (event.code === 'KeyW') {
+          this.setTransformMode('translate');
+        } else if (event.code === 'KeyE') {
+          this.setTransformMode('rotate');
         } else if (
           event.code === 'Delete' ||
           event.code === 'Backspace'
         ) {
           this.deleteSelected();
         } else if (
-          (event.metaKey ||
-            event.ctrlKey) &&
+          (event.metaKey || event.ctrlKey) &&
           event.code === 'KeyD'
         ) {
           event.preventDefault();
@@ -448,37 +464,29 @@ export class EditorController {
         }
       },
     );
+
+    this.updateChrome();
   }
 
   async activate() {
     this.active = true;
-    this.root.classList.add(
-      'active',
-    );
+    this.root.classList.add('active');
     this.orbit.enabled = true;
     this.transform.enabled = true;
 
-    this.camera.position.set(
-      0,
-      16,
-      13,
-    );
-    this.orbit.target.set(
-      0,
-      0,
-      -0.5,
-    );
+    this.camera.position.set(0, 16, 13);
+    this.orbit.target.set(0, 0, -0.5);
     this.orbit.update();
 
     await this.refreshLevelList();
+    this.renderToolPanel();
+    this.updateChrome();
     this.validate();
   }
 
   deactivate() {
     this.active = false;
-    this.root.classList.remove(
-      'active',
-    );
+    this.root.classList.remove('active');
     this.orbit.enabled = false;
     this.transform.enabled = false;
     this.transform.detach();
@@ -491,15 +499,19 @@ export class EditorController {
     }
   }
 
-  bindLevel(
-    level,
-    officeLevel,
-    preserveRef = null,
-  ) {
+  bindLevel(level, officeLevel, preserveRef = null) {
     this.level = level;
     this.officeLevel = officeLevel;
 
-    this.populateNpcPicker();
+    if (
+      !this.focusNpcId ||
+      !this.level.npcs?.some(npc => npc.id === this.focusNpcId)
+    ) {
+      this.focusNpcId =
+        this.level.npcs?.[0]?.id ?? null;
+    }
+
+    this.renderToolPanel();
     this.rebuildHelpers();
 
     if (preserveRef) {
@@ -508,19 +520,232 @@ export class EditorController {
       this.clearSelection();
     }
 
+    this.updateChrome();
     this.validate();
   }
 
-  populateNpcPicker() {
-    if (!this.ui?.routineNpc) return;
+  setWorkspace(workspace) {
+    if (
+      !WORKSPACES.some(([id]) => id === workspace)
+    ) {
+      return;
+    }
 
-    this.ui.routineNpc.innerHTML =
-      (this.level?.npcs ?? [])
-        .map(
-          npc =>
-            `<option value="${npc.id}">${npc.role ?? npc.id}</option>`,
-        )
-        .join('');
+    this.workspace = workspace;
+    this.linkSourceId = null;
+
+    this.root
+      .querySelectorAll('[data-editor-workspace]')
+      .forEach(button => {
+        button.classList.toggle(
+          'active',
+          button.dataset.editorWorkspace === workspace,
+        );
+      });
+
+    const labels = {
+      layout: ['LAYOUT', '布局'],
+      ai: ['AI', '行为与导航'],
+      gameplay: ['GAMEPLAY', '玩法点'],
+      analysis: ['ANALYSIS', '分析'],
+    };
+
+    this.ui.workspaceKicker.textContent =
+      labels[workspace][0];
+
+    this.ui.workspaceTitle.textContent =
+      labels[workspace][1];
+
+    const help = {
+      layout:
+        '布局：点击物件选择 · W 移动 · E 旋转 · ⌘/Ctrl+D 复制',
+      ai:
+        'AI：蓝色是导航 · 彩色方块是当前 NPC 行为点 · 点两个导航点可连线',
+      gameplay:
+        '玩法：绿色假装工作 · 蓝色躲藏 · 粉色诱饵',
+      analysis:
+        '分析：按需叠加导航、NPC 路线、玩法点和最近试玩轨迹',
+    };
+
+    this.ui.help.textContent =
+      help[workspace];
+
+    this.clearSelection();
+    this.renderToolPanel();
+    this.rebuildHelpers();
+  }
+
+  renderToolPanel() {
+    if (!this.ui?.tools || !this.level) return;
+
+    if (this.workspace === 'layout') {
+      this.ui.tools.innerHTML = `
+        <p class="editor-panel-copy">
+          先解决空间。这里只放几何，不显示 AI 调试线。
+        </p>
+        <div class="editor-tool-grid">
+          ${SPACE_ITEMS.map(
+            ([type, label]) => `
+              <button type="button" data-editor-add="${type}">
+                <span class="editor-tool-icon">${this.iconFor(type)}</span>
+                <span>${label}</span>
+              </button>
+            `,
+          ).join('')}
+        </div>
+      `;
+      return;
+    }
+
+    if (this.workspace === 'ai') {
+      this.ui.tools.innerHTML = `
+        <p class="editor-panel-copy">
+          一次只编辑一个角色。导航网保持可见，其他 NPC 路线隐藏。
+        </p>
+
+        <label class="editor-field editor-focus-field">
+          当前 NPC
+          <select data-editor-routine-npc>
+            ${(this.level.npcs ?? [])
+              .map(
+                npc => `
+                  <option value="${npc.id}" ${npc.id === this.focusNpcId ? 'selected' : ''}>
+                    ${this.escape(npc.role ?? npc.id)}
+                  </option>
+                `,
+              )
+              .join('')}
+          </select>
+        </label>
+
+        <div class="editor-ai-actions">
+          <button type="button" data-editor-add="nav">
+            <span class="editor-tool-icon">●</span>
+            新导航点
+          </button>
+          <button type="button" data-editor-add="routine">
+            <span class="editor-tool-icon">◆</span>
+            新行为点
+          </button>
+        </div>
+
+        <div class="editor-legend">
+          <span><i class="nav"></i>导航</span>
+          <span><i class="routine"></i>当前 NPC 路线</span>
+        </div>
+      `;
+      return;
+    }
+
+    if (this.workspace === 'gameplay') {
+      this.ui.tools.innerHTML = `
+        <p class="editor-panel-copy">
+          放置能改变潜行决策的办公室行为，不在这里摆家具。
+        </p>
+
+        <div class="editor-gameplay-list">
+          ${GAMEPLAY_ITEMS.map(
+            ([type, label]) => `
+              <button type="button" data-editor-add="${type}">
+                <span class="editor-tool-icon">${this.iconFor(type)}</span>
+                <span>
+                  <strong>${label}</strong>
+                  <small>${this.descriptionFor(type)}</small>
+                </span>
+              </button>
+            `,
+          ).join('')}
+        </div>
+      `;
+      return;
+    }
+
+    this.ui.tools.innerHTML = `
+      <p class="editor-panel-copy">
+        分析模式才显示多层调试信息。平时不要把这些层全部打开。
+      </p>
+
+      <div class="editor-analysis-toggles">
+        ${[
+          ['nav', '导航网'],
+          ['routines', '全部 NPC 路线'],
+          ['interactions', '玩法点'],
+          ['runs', '试玩轨迹'],
+        ]
+          .map(
+            ([key, label]) => `
+              <label>
+                <input
+                  type="checkbox"
+                  data-editor-layer-toggle="${key}"
+                  ${this.analysisLayers[key] ? 'checked' : ''}
+                />
+                <span>${label}</span>
+              </label>
+            `,
+          )
+          .join('')}
+      </div>
+
+      <button
+        type="button"
+        class="editor-secondary-wide"
+        data-editor-action="clear-runs"
+      >
+        清除试玩轨迹
+      </button>
+    `;
+  }
+
+  iconFor(type) {
+    const icons = {
+      desk: '▰',
+      tallCover: '▮',
+      wall: '━',
+      glassWall: '┅',
+      glassRoom: '□',
+      printer: '▣',
+      counter: '▱',
+      waterCooler: '◧',
+      plant: '▲',
+      bench: '▬',
+      'interaction:fakeWork': '▤',
+      'interaction:hideSpot': '◐',
+      'interaction:distraction': '✦',
+    };
+
+    return icons[type] ?? '•';
+  }
+
+  descriptionFor(type) {
+    const descriptions = {
+      'interaction:fakeWork':
+        '坐下装忙，作为社交潜行点',
+      'interaction:hideSpot':
+        '暂时脱离视线的安全点',
+      'interaction:distraction':
+        '把领导注意力引向别处',
+    };
+
+    return descriptions[type] ?? '';
+  }
+
+  updateChrome() {
+    if (!this.ui) return;
+
+    if (this.ui.saveLabel) {
+      this.ui.saveLabel.textContent =
+        this.session.dirty
+          ? '保存草稿 •'
+          : '保存草稿';
+    }
+
+    if (this.ui.githubDot) {
+      this.ui.githubDot.classList.toggle(
+        'connected',
+        this.session.hasRememberedGithubToken(),
+      );
+    }
   }
 
   clearHelpers() {
@@ -532,9 +757,7 @@ export class EditorController {
 
         if (
           object.material &&
-          !Array.isArray(
-            object.material,
-          )
+          !Array.isArray(object.material)
         ) {
           object.material.dispose?.();
         }
@@ -595,9 +818,7 @@ export class EditorController {
         .setFromPoints(
           points.map(
             point =>
-              new THREE.Vector3(
-                ...point,
-              ),
+              new THREE.Vector3(...point),
           ),
         );
 
@@ -610,10 +831,7 @@ export class EditorController {
       });
 
     const line =
-      new THREE.Line(
-        geometry,
-        material,
-      );
+      new THREE.Line(geometry, material);
 
     line.renderOrder = 15;
     this.helperGroup.add(line);
@@ -624,207 +842,208 @@ export class EditorController {
 
     if (!this.level) return;
 
-    this.makeHandle({
-      position:
-        this.level.playerSpawn,
-      color: 0x62d58d,
-      size: 0.22,
-      shape: 'box',
-      ref: {
-        kind: 'spawn',
-      },
-    });
+    const showSpawn =
+      this.workspace === 'layout' ||
+      this.workspace === 'gameplay' ||
+      this.workspace === 'analysis';
 
-    this.makeHandle({
-      position:
-        this.level.extraction
-          .position,
-      color: 0xffb85e,
-      size: 0.23,
-      shape: 'box',
-      ref: {
-        kind: 'extraction',
-      },
-    });
-
-    const navById =
-      new Map();
-
-    for (
-      const node of
-      this.level.navigation
-        ?.nodes ?? []
-    ) {
-      const handle =
-        this.makeHandle({
-          position:
-            node.position,
-          color: 0x55c9e8,
-          size: 0.11,
-          ref: {
-            kind: 'nav',
-            id: node.id,
-          },
-        });
-
-      navById.set(
-        node.id,
-        handle.position,
+    const showNav =
+      this.workspace === 'ai' ||
+      (
+        this.workspace === 'analysis' &&
+        this.analysisLayers.nav
       );
+
+    const showRoutines =
+      this.workspace === 'ai' ||
+      (
+        this.workspace === 'analysis' &&
+        this.analysisLayers.routines
+      );
+
+    const showInteractions =
+      this.workspace === 'gameplay' ||
+      (
+        this.workspace === 'analysis' &&
+        this.analysisLayers.interactions
+      );
+
+    const showRuns =
+      this.workspace === 'analysis' &&
+      this.analysisLayers.runs;
+
+    if (showSpawn) {
+      this.makeHandle({
+        position: this.level.playerSpawn,
+        color: 0x62d58d,
+        size: 0.22,
+        shape: 'box',
+        ref: { kind: 'spawn' },
+      });
+
+      this.makeHandle({
+        position: this.level.extraction.position,
+        color: 0xffb85e,
+        size: 0.23,
+        shape: 'box',
+        ref: { kind: 'extraction' },
+      });
     }
 
-    for (
-      const [
-        a,
-        b,
-      ] of
-      this.level.navigation
-        ?.edges ?? []
-    ) {
-      const pa =
-        navById.get(a);
-      const pb =
-        navById.get(b);
+    const navById = new Map();
 
-      if (pa && pb) {
-        this.addLine(
-          [
-            [
-              pa.x,
-              0.055,
-              pa.z,
-            ],
-            [
-              pb.x,
-              0.055,
-              pb.z,
-            ],
-          ],
-          0x55c9e8,
-          0.32,
+    if (showNav) {
+      for (
+        const node of
+        this.level.navigation?.nodes ?? []
+      ) {
+        const handle =
+          this.makeHandle({
+            position: node.position,
+            color: 0x55c9e8,
+            size: 0.105,
+            ref: {
+              kind: 'nav',
+              id: node.id,
+            },
+          });
+
+        navById.set(
+          node.id,
+          handle.position,
         );
+      }
+
+      for (
+        const [a, b] of
+        this.level.navigation?.edges ?? []
+      ) {
+        const pa = navById.get(a);
+        const pb = navById.get(b);
+
+        if (pa && pb) {
+          this.addLine(
+            [
+              [pa.x, 0.055, pa.z],
+              [pb.x, 0.055, pb.z],
+            ],
+            0x55c9e8,
+            this.workspace === 'analysis' ? 0.22 : 0.42,
+          );
+        }
       }
     }
 
-    const npcColors = [
-      0xf0b45f,
-      0xe2766a,
-      0xb991e8,
-      0x75cfb1,
-    ];
+    if (showRoutines) {
+      const npcColors = [
+        0xf0b45f,
+        0xe2766a,
+        0xb991e8,
+        0x75cfb1,
+      ];
 
-    (this.level.npcs ?? [])
-      .forEach(
+      (this.level.npcs ?? []).forEach(
         (npc, npcIndex) => {
+          if (
+            this.workspace === 'ai' &&
+            npc.id !== this.focusNpcId
+          ) {
+            return;
+          }
+
           const color =
             npcColors[
-              npcIndex %
-                npcColors.length
+              npcIndex % npcColors.length
             ];
 
           const points =
             npc.routine?.map(
-              node =>
-                node.position,
+              node => node.position,
             ) ?? [];
 
-          if (
-            points.length > 1
-          ) {
+          if (points.length > 1) {
             this.addLine(
-              [
-                ...points,
-                points[0],
-              ],
+              [...points, points[0]],
               color,
-              0.72,
+              this.workspace === 'analysis'
+                ? 0.46
+                : 0.82,
             );
           }
 
-          (npc.routine ?? [])
-            .forEach(
-              (
-                node,
-                index,
-              ) => {
-                this.makeHandle({
-                  position:
-                    node.position,
-                  color,
-                  size: 0.14,
-                  shape: 'box',
-                  ref: {
-                    kind:
-                      'routine',
-                    npcId:
-                      npc.id,
-                    index,
-                  },
-                });
-              },
-            );
+          (npc.routine ?? []).forEach(
+            (node, index) => {
+              this.makeHandle({
+                position: node.position,
+                color,
+                size: 0.145,
+                shape: 'box',
+                ref: {
+                  kind: 'routine',
+                  npcId: npc.id,
+                  index,
+                },
+              });
+            },
+          );
         },
       );
+    }
 
-    const runs =
-      this.recorder?.list(
-        this.level.id,
-      ) ?? [];
+    if (showRuns) {
+      const runs =
+        this.recorder?.list(
+          this.level.id,
+        ) ?? [];
 
-    runs
-      .slice(0, 6)
-      .reverse()
-      .forEach(
-        (run, index) => {
-          if (
-            run.points?.length >
-            1
-          ) {
-            this.addLine(
-              run.points,
-              0xf06cc6,
-              0.11 +
-                index * 0.035,
-            );
-          }
-        },
-      );
+      runs
+        .slice(0, 6)
+        .reverse()
+        .forEach(
+          (run, index) => {
+            if (
+              run.points?.length > 1
+            ) {
+              this.addLine(
+                run.points,
+                0xf06cc6,
+                0.12 + index * 0.04,
+              );
+            }
+          },
+        );
+    }
 
-    for (
-      const interaction of
-      this.level.interactions ?? []
-    ) {
-      const color =
-        interaction.type ===
-        'fakeWork'
-          ? 0x74d9a4
-          : interaction.type ===
-              'hideSpot'
-            ? 0x8da7ff
-            : 0xf17bc6;
+    if (showInteractions) {
+      for (
+        const interaction of
+        this.level.interactions ?? []
+      ) {
+        const color =
+          interaction.type === 'fakeWork'
+            ? 0x74d9a4
+            : interaction.type === 'hideSpot'
+              ? 0x8da7ff
+              : 0xf17bc6;
 
-      this.makeHandle({
-        position:
-          interaction.position,
-        color,
-        size: 0.16,
-        shape: 'box',
-        ref: {
-          kind:
-            'interaction',
-          id:
-            interaction.id,
-        },
-      });
+        this.makeHandle({
+          position: interaction.position,
+          color,
+          size: 0.165,
+          shape: 'box',
+          ref: {
+            kind: 'interaction',
+            id: interaction.id,
+          },
+        });
+      }
     }
   }
 
   environmentIds() {
     return new Set(
       (this.level.environment ?? [])
-        .map(
-          object => object.id,
-        ),
+        .map(object => object.id),
     );
   }
 
@@ -837,9 +1056,7 @@ export class EditorController {
       this.insertionPoint();
 
     if (
-      type.startsWith(
-        'interaction:',
-      )
+      type.startsWith('interaction:')
     ) {
       const interactionType =
         type.split(':')[1];
@@ -847,9 +1064,7 @@ export class EditorController {
       const ids =
         new Set(
           (this.level.interactions ?? [])
-            .map(
-              item => item.id,
-            ),
+            .map(item => item.id),
         );
 
       const id =
@@ -860,8 +1075,7 @@ export class EditorController {
 
       this.level.interactions.push({
         id,
-        type:
-          interactionType,
+        type: interactionType,
         position: [
           point.x,
           0,
@@ -873,23 +1087,18 @@ export class EditorController {
       this.commitMutation({
         rebuild: true,
         preserve: {
-          kind:
-            'interaction',
+          kind: 'interaction',
           id,
         },
       });
-
       return;
     }
 
     if (type === 'nav') {
       const ids =
         new Set(
-          (this.level.navigation
-            ?.nodes ?? [])
-            .map(
-              node => node.id,
-            ),
+          (this.level.navigation?.nodes ?? [])
+            .map(node => node.id),
         );
 
       const id =
@@ -911,18 +1120,13 @@ export class EditorController {
           id,
         },
       });
-
       return;
     }
 
     if (type === 'routine') {
-      const npcId =
-        this.ui.routineNpc.value;
-
       const npc =
         this.level.npcs.find(
-          item =>
-            item.id === npcId,
+          item => item.id === this.focusNpcId,
         );
 
       if (!npc) return;
@@ -944,13 +1148,10 @@ export class EditorController {
         rebuild: true,
         preserve: {
           kind: 'routine',
-          npcId,
-          index:
-            npc.routine.length -
-            1,
+          npcId: npc.id,
+          index: npc.routine.length - 1,
         },
       });
-
       return;
     }
 
@@ -961,9 +1162,7 @@ export class EditorController {
         this.environmentIds(),
       );
 
-    this.level.environment.push(
-      object,
-    );
+    this.level.environment.push(object);
 
     this.commitMutation({
       rebuild: true,
@@ -983,20 +1182,17 @@ export class EditorController {
     }
 
     const rect =
-      this.canvas
-        .getBoundingClientRect();
+      this.canvas.getBoundingClientRect();
 
     this.pointer.x =
-      ((event.clientX -
-        rect.left) /
+      ((event.clientX - rect.left) /
         rect.width) *
         2 -
       1;
 
     this.pointer.y =
       -(
-        (event.clientY -
-          rect.top) /
+        (event.clientY - rect.top) /
         rect.height
       ) *
         2 +
@@ -1014,39 +1210,32 @@ export class EditorController {
     for (
       const root of
       this.officeLevel?.builder
-        ?.objectRoots
-        ?.values?.() ?? []
+        ?.objectRoots?.values?.() ?? []
     ) {
       if (
-        root.userData
-          .editorSelectable !==
-        false
+        root.userData.editorSelectable !== false
       ) {
         targets.push(root);
       }
     }
 
     const hits =
-      this.raycaster
-        .intersectObjects(
-          targets,
-          true,
-        );
+      this.raycaster.intersectObjects(
+        targets,
+        true,
+      );
 
     if (!hits.length) {
       this.clearSelection();
       return;
     }
 
-    let object =
-      hits[0].object;
+    let object = hits[0].object;
 
     while (
       object &&
-      !object.userData
-        .editorRef &&
-      !object.userData
-        .levelObjectId
+      !object.userData.editorRef &&
+      !object.userData.levelObjectId
     ) {
       object = object.parent;
     }
@@ -1054,24 +1243,18 @@ export class EditorController {
     if (!object) return;
 
     const ref =
-      object.userData
-        .editorRef ??
+      object.userData.editorRef ??
       {
         kind: 'environment',
-        id:
-          object.userData
-            .levelObjectId,
+        id: object.userData.levelObjectId,
       };
 
     if (
       this.linkSourceId &&
       ref.kind === 'nav' &&
-      ref.id !==
-        this.linkSourceId
+      ref.id !== this.linkSourceId
     ) {
-      this.completeLink(
-        ref.id,
-      );
+      this.completeLink(ref.id);
       return;
     }
 
@@ -1084,26 +1267,19 @@ export class EditorController {
 
     let object = null;
 
-    if (
-      ref.kind ===
-      'environment'
-    ) {
+    if (ref.kind === 'environment') {
       object =
-        this.officeLevel
-          ?.builder
-          ?.objectRoots
-          ?.get(ref.id);
+        this.officeLevel?.builder
+          ?.objectRoots?.get(ref.id);
     } else {
       object =
-        this.selectableHelpers
-          .find(
-            helper =>
-              this.refsEqual(
-                helper.userData
-                  .editorRef,
-                ref,
-              ),
-          );
+        this.selectableHelpers.find(
+          helper =>
+            this.refsEqual(
+              helper.userData.editorRef,
+              ref,
+            ),
+        );
     }
 
     this.selectedObject =
@@ -1144,64 +1320,38 @@ export class EditorController {
 
     if (!ref) return null;
 
-    if (
-      ref.kind ===
-      'environment'
-    ) {
-      return this.level.environment
-        .find(
-          object =>
-            object.id === ref.id,
-        );
+    if (ref.kind === 'environment') {
+      return this.level.environment.find(
+        object => object.id === ref.id,
+      );
     }
 
-    if (
-      ref.kind ===
-      'interaction'
-    ) {
-      return this.level.interactions
-        .find(
-          item =>
-            item.id === ref.id,
-        );
+    if (ref.kind === 'interaction') {
+      return this.level.interactions.find(
+        item => item.id === ref.id,
+      );
     }
 
     if (ref.kind === 'nav') {
-      return this.level.navigation
-        .nodes.find(
-          node =>
-            node.id === ref.id,
-        );
+      return this.level.navigation.nodes.find(
+        node => node.id === ref.id,
+      );
     }
 
-    if (
-      ref.kind === 'routine'
-    ) {
-      return this.level.npcs
-        .find(
-          npc =>
-            npc.id ===
-            ref.npcId,
-        )
-        ?.routine?.[
-          ref.index
-        ];
+    if (ref.kind === 'routine') {
+      return this.level.npcs.find(
+        npc => npc.id === ref.npcId,
+      )?.routine?.[ref.index];
     }
 
     if (ref.kind === 'spawn') {
       return {
-        position:
-          this.level
-            .playerSpawn,
+        position: this.level.playerSpawn,
       };
     }
 
-    if (
-      ref.kind ===
-      'extraction'
-    ) {
-      return this.level
-        .extraction;
+    if (ref.kind === 'extraction') {
+      return this.level.extraction;
     }
 
     return null;
@@ -1222,19 +1372,16 @@ export class EditorController {
 
     const position = [
       Number(
-        this.selectedObject
-          .position.x.toFixed(3),
+        this.selectedObject.position.x.toFixed(3),
       ),
       0,
       Number(
-        this.selectedObject
-          .position.z.toFixed(3),
+        this.selectedObject.position.z.toFixed(3),
       ),
     ];
 
     if (
-      this.selectedRef.kind ===
-      'spawn'
+      this.selectedRef.kind === 'spawn'
     ) {
       this.level.playerSpawn =
         position;
@@ -1247,17 +1394,14 @@ export class EditorController {
       this.level.prepZone.center =
         [...position];
     } else if (
-      this.selectedRef.kind ===
-      'extraction'
+      this.selectedRef.kind === 'extraction'
     ) {
       this.level.extraction.position =
         position;
 
       const elevator =
         this.level.environment.find(
-          object =>
-            object.type ===
-            'elevator',
+          object => object.type === 'elevator',
         );
 
       if (elevator) {
@@ -1269,20 +1413,14 @@ export class EditorController {
     }
 
     if (
-      this.selectedRef.kind ===
-      'environment'
+      this.selectedRef.kind === 'environment'
     ) {
       data.rotation =
         Number(
-          this.selectedObject
-            .rotation.y
-            .toFixed(4),
+          this.selectedObject.rotation.y.toFixed(4),
         );
 
-      if (
-        data.type ===
-        'elevator'
-      ) {
+      if (data.type === 'elevator') {
         this.level.extraction.position =
           [...position];
       }
@@ -1303,29 +1441,36 @@ export class EditorController {
 
     if (!ref || !data) {
       root.innerHTML = `
-        <p class="editor-kicker">LEVEL</p>
-        <h2>${this.level?.name ?? 'No Level'}</h2>
-        <label class="editor-field">
-          名称
-          <input data-editor-level-field="name" value="${this.escape(this.level?.name ?? '')}">
-        </label>
-        <p class="editor-mini-note">
-          从左侧放置对象，或直接点击场景里的对象、蓝色导航点、彩色 NPC 行为点。
-        </p>
+        <div class="editor-inspector-empty">
+          <p class="editor-kicker">LEVEL</p>
+          <h2>${this.escape(this.level?.name ?? 'No Level')}</h2>
+          <label class="editor-field">
+            名称
+            <input
+              data-editor-level-field="name"
+              value="${this.escape(this.level?.name ?? '')}"
+            />
+          </label>
+
+          <div class="editor-level-summary">
+            <span><strong>${this.level?.environment?.length ?? 0}</strong> 物件</span>
+            <span><strong>${this.level?.npcs?.length ?? 0}</strong> NPC</span>
+            <span><strong>${this.level?.interactions?.length ?? 0}</strong> 玩法点</span>
+          </div>
+
+          <p class="editor-mini-note">
+            点击场景对象后，这里只显示和当前选择有关的参数。
+          </p>
+        </div>
       `;
       return;
     }
 
     const position =
-      data.position ?? [
-        0,
-        0,
-        0,
-      ];
+      data.position ?? [0, 0, 0];
 
     const rotation =
-      ref.kind ===
-      'environment'
+      ref.kind === 'environment'
         ? (
             (data.rotation ?? 0) *
             180 /
@@ -1335,14 +1480,11 @@ export class EditorController {
 
     let specific = '';
 
-    if (
-      ref.kind ===
-      'environment'
-    ) {
+    if (ref.kind === 'environment') {
       const fields = [];
 
       if (Array.isArray(data.size)) {
-        ['W', 'H', 'D'].forEach(
+        ['宽', '高', '深'].forEach(
           (label, index) => {
             fields.push(
               `<label>${label}<input type="number" min="0.05" step="0.05" data-editor-param="size.${index}" value="${data.size[index] ?? 1}"></label>`,
@@ -1351,117 +1493,144 @@ export class EditorController {
         );
       }
 
+      const paramLabels = {
+        width: '宽',
+        depth: '深',
+        height: '高',
+        partitionHeight: '隔板高',
+        doorWidth: '门宽',
+      };
+
       for (
-        const key of [
-          'width',
-          'depth',
-          'height',
-          'partitionHeight',
-          'doorWidth',
-        ]
+        const key of
+        Object.keys(paramLabels)
       ) {
         if (
           data.params?.[key] != null
         ) {
           fields.push(
-            `<label>${key}<input type="number" min="0.05" step="0.05" data-editor-param="params.${key}" value="${data.params[key]}"></label>`,
+            `<label>${paramLabels[key]}<input type="number" min="0.05" step="0.05" data-editor-param="params.${key}" value="${data.params[key]}"></label>`,
           );
         }
       }
 
       if (fields.length) {
         specific = `
-          <p class="editor-kicker editor-section-kicker">DIMENSIONS</p>
-          <div class="editor-dimension-grid">
-            ${fields.join('')}
+          <div class="editor-inspector-section">
+            <h3>尺寸</h3>
+            <div class="editor-dimension-grid">
+              ${fields.join('')}
+            </div>
           </div>
         `;
       }
     }
 
-    if (
-      ref.kind ===
-      'routine'
-    ) {
+    if (ref.kind === 'routine') {
       specific = `
-        <label class="editor-field">
-          Action
-          <select data-editor-field="action">
-            ${ROUTINE_ACTIONS
-              .map(
-                action =>
-                  `<option value="${action}" ${data.action === action ? 'selected' : ''}>${action}</option>`,
-              )
-              .join('')}
-          </select>
-        </label>
-        <label class="editor-field">
-          Duration
-          <input type="number" min="0" step="0.1" data-editor-field="duration" value="${data.duration ?? 0}">
-        </label>
+        <div class="editor-inspector-section">
+          <h3>办公室行为</h3>
+          <label class="editor-field">
+            动作
+            <select data-editor-field="action">
+              ${ROUTINE_ACTIONS
+                .map(
+                  action =>
+                    `<option value="${action}" ${data.action === action ? 'selected' : ''}>${action}</option>`,
+                )
+                .join('')}
+            </select>
+          </label>
+
+          <label class="editor-field">
+            停留秒数
+            <input
+              type="number"
+              min="0"
+              step="0.1"
+              data-editor-field="duration"
+              value="${data.duration ?? 0}"
+            />
+          </label>
+        </div>
       `;
     }
 
-    if (
-      ref.kind ===
-      'interaction'
-    ) {
+    if (ref.kind === 'interaction') {
       specific = `
-        <label class="editor-field">
-          Type
-          <select data-editor-field="type">
-            ${INTERACTION_TYPES
-              .map(
-                type =>
-                  `<option value="${type}" ${data.type === type ? 'selected' : ''}>${type}</option>`,
-              )
-              .join('')}
-          </select>
-        </label>
+        <div class="editor-inspector-section">
+          <h3>玩法</h3>
+          <label class="editor-field">
+            类型
+            <select data-editor-field="type">
+              ${INTERACTION_TYPES
+                .map(
+                  type =>
+                    `<option value="${type}" ${data.type === type ? 'selected' : ''}>${type}</option>`,
+                )
+                .join('')}
+            </select>
+          </label>
+        </div>
       `;
     }
 
     const canDelete =
-      ![
-        'spawn',
-        'extraction',
-      ].includes(ref.kind);
+      !['spawn', 'extraction']
+        .includes(ref.kind);
 
     const canDuplicate =
-      [
-        'environment',
-        'interaction',
-        'routine',
-      ].includes(ref.kind);
+      ['environment', 'interaction', 'routine']
+        .includes(ref.kind);
+
+    const kindNames = {
+      environment: '物件',
+      interaction: '玩法点',
+      nav: '导航点',
+      routine: 'NPC 行为点',
+      spawn: '玩家出生点',
+      extraction: '电梯出口',
+    };
 
     root.innerHTML = `
-      <p class="editor-kicker">${ref.kind.toUpperCase()}</p>
-      <h2>${this.escape(data.id ?? ref.id ?? ref.npcId ?? ref.kind)}</h2>
-
-      <div class="editor-coordinates">
-        <label>
-          X
-          <input type="number" step="0.1" data-editor-field="x" value="${position[0].toFixed(2)}">
-        </label>
-        <label>
-          Z
-          <input type="number" step="0.1" data-editor-field="z" value="${position[2].toFixed(2)}">
-        </label>
+      <div class="editor-selection-heading">
+        <div>
+          <p class="editor-kicker">${kindNames[ref.kind] ?? ref.kind}</p>
+          <h2>${this.escape(data.id ?? ref.id ?? ref.npcId ?? ref.kind)}</h2>
+        </div>
+        <span class="editor-selection-type">${ref.kind}</span>
       </div>
 
-      ${rotation == null ? '' : `
-        <label class="editor-field">
-          Rotation °
-          <input type="number" step="15" data-editor-field="rotation" value="${rotation}">
-        </label>
-      `}
+      <div class="editor-inspector-section">
+        <h3>位置</h3>
+        <div class="editor-coordinates">
+          <label>
+            X
+            <input type="number" step="0.1" data-editor-field="x" value="${position[0].toFixed(2)}">
+          </label>
+          <label>
+            Z
+            <input type="number" step="0.1" data-editor-field="z" value="${position[2].toFixed(2)}">
+          </label>
+        </div>
+
+        ${rotation == null ? '' : `
+          <label class="editor-field">
+            旋转 °
+            <input type="number" step="15" data-editor-field="rotation" value="${rotation}">
+          </label>
+        `}
+      </div>
 
       ${specific}
 
       ${ref.kind === 'nav' ? `
-        <button data-editor-link>
-          ${this.linkSourceId === ref.id ? '选择目标节点…' : '连接到另一个导航点'}
-        </button>
+        <div class="editor-inspector-section">
+          <h3>连接</h3>
+          <button class="editor-secondary-wide" data-editor-link>
+            ${this.linkSourceId === ref.id ? '现在选择另一个导航点…' : '连接 / 断开另一个导航点'}
+          </button>
+        </div>
       ` : ''}
 
       <div class="editor-inspector-actions">
@@ -1478,8 +1647,7 @@ export class EditorController {
     if (!data) return;
 
     const path =
-      input.dataset.editorParam
-        .split('.');
+      input.dataset.editorParam.split('.');
 
     const value =
       Number(input.value);
@@ -1499,8 +1667,7 @@ export class EditorController {
 
     this.commitMutation({
       rebuild: true,
-      preserve:
-        this.selectedRef,
+      preserve: this.selectedRef,
     });
   }
 
@@ -1521,9 +1688,7 @@ export class EditorController {
       field === 'z'
     ) {
       const index =
-        field === 'x'
-          ? 0
-          : 2;
+        field === 'x' ? 0 : 2;
 
       data.position[index] =
         Number(input.value);
@@ -1537,10 +1702,7 @@ export class EditorController {
       return;
     }
 
-    if (
-      field ===
-      'rotation'
-    ) {
+    if (field === 'rotation') {
       data.rotation =
         Number(input.value) *
         Math.PI /
@@ -1553,10 +1715,7 @@ export class EditorController {
       return;
     }
 
-    if (
-      field ===
-      'duration'
-    ) {
+    if (field === 'duration') {
       data.duration =
         Number(input.value);
     } else {
@@ -1578,8 +1737,7 @@ export class EditorController {
 
     if (ref.kind === 'spawn') {
       this.level.prepZone ??= {
-        center:
-          [...this.level.playerSpawn],
+        center: [...this.level.playerSpawn],
         radius: 1.75,
       };
 
@@ -1587,15 +1745,10 @@ export class EditorController {
         [...this.level.playerSpawn];
     }
 
-    if (
-      ref.kind ===
-      'extraction'
-    ) {
+    if (ref.kind === 'extraction') {
       const elevator =
         this.level.environment.find(
-          object =>
-            object.type ===
-            'elevator',
+          object => object.type === 'elevator',
         );
 
       if (elevator) {
@@ -1604,17 +1757,11 @@ export class EditorController {
       }
     }
 
-    if (
-      ref.kind ===
-      'environment'
-    ) {
+    if (ref.kind === 'environment') {
       const object =
         this.selectedData();
 
-      if (
-        object?.type ===
-        'elevator'
-      ) {
+      if (object?.type === 'elevator') {
         this.level.extraction.position =
           [...object.position];
       }
@@ -1633,12 +1780,22 @@ export class EditorController {
       this.transform.showZ = false;
       this.transform.showY = true;
     }
+
+    this.root
+      .querySelectorAll(
+        '[data-editor-action="translate"], [data-editor-action="rotate"]',
+      )
+      .forEach(button => {
+        button.classList.toggle(
+          'active',
+          button.dataset.editorAction === mode,
+        );
+      });
   }
 
   startLink() {
     if (
-      this.selectedRef?.kind !==
-      'nav'
+      this.selectedRef?.kind !== 'nav'
     ) {
       return;
     }
@@ -1648,44 +1805,35 @@ export class EditorController {
 
     this.renderInspector();
     this.setStatus(
-      '选择第二个导航点建立连线',
+      '选择第二个导航点：已有连线会断开，没有则建立。',
       'info',
     );
   }
 
   completeLink(targetId) {
-    const a =
-      this.linkSourceId;
-    const b =
-      targetId;
+    const a = this.linkSourceId;
+    const b = targetId;
 
     this.linkSourceId = null;
 
     const exists =
-      this.level.navigation.edges
-        .some(
-          edge =>
-            (edge[0] === a &&
-              edge[1] === b) ||
-            (edge[0] === b &&
-              edge[1] === a),
-        );
+      this.level.navigation.edges.some(
+        edge =>
+          (edge[0] === a && edge[1] === b) ||
+          (edge[0] === b && edge[1] === a),
+      );
 
     if (exists) {
       this.level.navigation.edges =
-        this.level.navigation.edges
-          .filter(
-            edge =>
-              !(
-                (edge[0] === a &&
-                  edge[1] === b) ||
-                (edge[0] === b &&
-                  edge[1] === a)
-              ),
-          );
+        this.level.navigation.edges.filter(
+          edge =>
+            !(
+              (edge[0] === a && edge[1] === b) ||
+              (edge[0] === b && edge[1] === a)
+            ),
+        );
     } else {
-      this.level.navigation.edges
-        .push([a, b]);
+      this.level.navigation.edges.push([a, b]);
     }
 
     this.commitMutation({
@@ -1709,65 +1857,37 @@ export class EditorController {
       return;
     }
 
-    if (
-      ref.kind ===
-      'environment'
-    ) {
+    if (ref.kind === 'environment') {
       this.level.environment =
-        this.level.environment
-          .filter(
-            object =>
-              object.id !==
-              ref.id,
-          );
+        this.level.environment.filter(
+          object => object.id !== ref.id,
+        );
 
       this.level.interactions =
-        this.level.interactions
-          .filter(
-            interaction =>
-              interaction
-                .linkedObjectId !==
-              ref.id,
-          );
-    } else if (
-      ref.kind ===
-      'interaction'
-    ) {
+        this.level.interactions.filter(
+          interaction =>
+            interaction.linkedObjectId !== ref.id,
+        );
+    } else if (ref.kind === 'interaction') {
       this.level.interactions =
-        this.level.interactions
-          .filter(
-            item =>
-              item.id !== ref.id,
-          );
-    } else if (
-      ref.kind === 'nav'
-    ) {
+        this.level.interactions.filter(
+          item => item.id !== ref.id,
+        );
+    } else if (ref.kind === 'nav') {
       this.level.navigation.nodes =
-        this.level.navigation.nodes
-          .filter(
-            node =>
-              node.id !== ref.id,
-          );
+        this.level.navigation.nodes.filter(
+          node => node.id !== ref.id,
+        );
 
       this.level.navigation.edges =
-        this.level.navigation.edges
-          .filter(
-            edge =>
-              !edge.includes(
-                ref.id,
-              ),
-          );
-    } else if (
-      ref.kind ===
-      'routine'
-    ) {
+        this.level.navigation.edges.filter(
+          edge => !edge.includes(ref.id),
+        );
+    } else if (ref.kind === 'routine') {
       const npc =
-        this.level.npcs
-          .find(
-            item =>
-              item.id ===
-              ref.npcId,
-          );
+        this.level.npcs.find(
+          item => item.id === ref.npcId,
+        );
 
       npc?.routine?.splice(
         ref.index,
@@ -1789,10 +1909,7 @@ export class EditorController {
 
     if (!ref) return;
 
-    if (
-      ref.kind ===
-      'environment'
-    ) {
+    if (ref.kind === 'environment') {
       const source =
         this.selectedData();
 
@@ -1810,9 +1927,7 @@ export class EditorController {
       copy.position[0] += 0.6;
       copy.position[2] += 0.6;
 
-      this.level.environment.push(
-        copy,
-      );
+      this.level.environment.push(copy);
 
       this.commitMutation({
         rebuild: true,
@@ -1821,23 +1936,17 @@ export class EditorController {
           id: copy.id,
         },
       });
-
       return;
     }
 
-    if (
-      ref.kind ===
-      'interaction'
-    ) {
+    if (ref.kind === 'interaction') {
       const source =
         this.selectedData();
 
       const ids =
         new Set(
           this.level.interactions
-            .map(
-              item => item.id,
-            ),
+            .map(item => item.id),
         );
 
       const copy =
@@ -1851,37 +1960,26 @@ export class EditorController {
 
       copy.position[0] += 0.5;
 
-      this.level.interactions.push(
-        copy,
-      );
+      this.level.interactions.push(copy);
 
       this.commitMutation({
         rebuild: true,
         preserve: {
-          kind:
-            'interaction',
+          kind: 'interaction',
           id: copy.id,
         },
       });
-
       return;
     }
 
-    if (
-      ref.kind ===
-      'routine'
-    ) {
+    if (ref.kind === 'routine') {
       const npc =
         this.level.npcs.find(
-          item =>
-            item.id ===
-            ref.npcId,
+          item => item.id === ref.npcId,
         );
 
       const source =
-        npc?.routine?.[
-          ref.index
-        ];
+        npc?.routine?.[ref.index];
 
       if (!source) return;
 
@@ -1901,8 +1999,7 @@ export class EditorController {
         preserve: {
           kind: 'routine',
           npcId: ref.npcId,
-          index:
-            ref.index + 1,
+          index: ref.index + 1,
         },
       });
     }
@@ -1913,6 +2010,7 @@ export class EditorController {
     preserve = null,
   } = {}) {
     this.session.markDirty();
+    this.updateChrome();
 
     if (rebuild) {
       await this.onRebuild(
@@ -1921,10 +2019,13 @@ export class EditorController {
       );
     } else {
       this.rebuildHelpers();
-      this.selectRef(
-        preserve ??
-          this.selectedRef,
-      );
+
+      if (preserve ?? this.selectedRef) {
+        this.selectRef(
+          preserve ?? this.selectedRef,
+        );
+      }
+
       this.validate();
     }
   }
@@ -1933,17 +2034,14 @@ export class EditorController {
     if (!this.level) return;
 
     const result =
-      validateLevel(
-        this.level,
-      );
+      validateLevel(this.level);
 
     const pill =
-      this.ui
-        .validationPill;
+      this.ui.validationPill;
 
     pill.textContent =
       result.valid
-        ? `✓ Valid · ${result.metrics.objects} objects`
+        ? `✓ Valid · ${result.metrics.objects}`
         : `✕ ${result.errors.length} errors`;
 
     pill.className =
@@ -1951,13 +2049,13 @@ export class EditorController {
 
     const rows = [
       ...result.errors
-        .slice(0, 8)
+        .slice(0, 10)
         .map(
           message =>
             `<li class="error">${this.escape(message)}</li>`,
         ),
       ...result.warnings
-        .slice(0, 4)
+        .slice(0, 6)
         .map(
           message =>
             `<li class="warning">${this.escape(message)}</li>`,
@@ -1967,12 +2065,20 @@ export class EditorController {
     this.ui.validation.innerHTML =
       rows.length
         ? `
-            <details>
-              <summary>Validation</summary>
+            <div class="editor-validation-card">
+              <div class="editor-validation-card-head">
+                <strong>${result.errors.length ? '需要修复' : '提醒'}</strong>
+                <span>${result.errors.length} errors · ${result.warnings.length} warnings</span>
+              </div>
               <ul>${rows.join('')}</ul>
-            </details>
+            </div>
           `
         : '';
+
+    this.ui.validation.classList.toggle(
+      'visible',
+      rows.length > 0,
+    );
 
     return result;
   }
@@ -1981,78 +2087,78 @@ export class EditorController {
     try {
       if (action === 'play') {
         this.onPlay?.();
-      } else if (
-        action === 'translate'
-      ) {
-        this.setTransformMode(
-          'translate',
-        );
-      } else if (
-        action === 'rotate'
-      ) {
-        this.setTransformMode(
-          'rotate',
-        );
-      } else if (
-        action === 'save'
-      ) {
+        return;
+      }
+
+      if (action === 'translate') {
+        this.setTransformMode('translate');
+        return;
+      }
+
+      if (action === 'rotate') {
+        this.setTransformMode('rotate');
+        return;
+      }
+
+      if (action === 'save') {
         this.session.saveDraft();
+        this.updateChrome();
         this.setStatus(
-          '草稿已保存到浏览器',
+          '草稿已保存到这台设备',
           'success',
         );
         await this.refreshLevelList();
-      } else if (
-        action === 'export'
-      ) {
-        this.session.downloadJson();
-      } else if (
-        action === 'import'
-      ) {
-        this.ui.import.click();
-      } else if (
-        action ===
-        'duplicate-level'
-      ) {
-        await this.duplicateLevel();
-      } else if (
-        action === 'revert'
-      ) {
-        const level =
-          await this.session
-            .revertPublished();
+        return;
+      }
 
-        await this.onReplaceLevel(
-          level,
-        );
+      if (action === 'export') {
+        this.session.downloadJson();
+      } else if (action === 'import') {
+        this.ui.import.click();
+      } else if (action === 'duplicate-level') {
+        await this.duplicateLevel();
+      } else if (action === 'revert') {
+        const level =
+          await this.session.revertPublished();
+
+        await this.onReplaceLevel(level);
 
         this.setStatus(
-          '已恢复正式发布版本',
+          '已恢复 GitHub 上的正式版本',
           'success',
         );
-      } else if (
-        action === 'clear-runs'
-      ) {
-        this.recorder?.clear(
-          this.level.id,
-        );
+      } else if (action === 'clear-runs') {
+        this.recorder?.clear(this.level.id);
         this.rebuildHelpers();
         this.setStatus(
           '已清除本关试玩轨迹',
           'success',
         );
-      } else if (
-        action === 'publish'
-      ) {
-        this.ui.commit.value =
-          `level: update ${this.level.id} from graybox editor`;
-        this.ui.publishStatus.textContent =
-          '';
-        this.ui.publishDialog.showModal();
-      } else if (
-        action === 'load'
-      ) {
+      } else if (action === 'publish') {
+        this.openPublishDialog();
+      } else if (action === 'load') {
         await this.loadSelectedLevel();
+      } else if (action === 'show-validation') {
+        if (!this.ui.validation.innerHTML) {
+          this.setStatus(
+            '当前关卡没有 Validation 问题',
+            'success',
+          );
+        } else {
+          this.ui.validation.classList.toggle('visible');
+        }
+      } else if (action === 'forget-token') {
+        this.session.forgetGithubToken();
+        this.ui.token.value = '';
+        this.updateChrome();
+        this.setStatus(
+          '已从这台设备移除 GitHub token',
+          'success',
+        );
+      }
+
+      if (this.ui.more?.open) {
+        this.ui.more.open = false;
       }
     } catch (error) {
       this.setStatus(
@@ -2060,6 +2166,27 @@ export class EditorController {
         'error',
       );
     }
+  }
+
+  openPublishDialog() {
+    const remembered =
+      this.session.getRememberedGithubToken();
+
+    this.ui.token.value =
+      remembered;
+
+    this.ui.rememberToken.checked =
+      true;
+
+    this.ui.commit.value =
+      `level: update ${this.level.id} from graybox editor`;
+
+    this.ui.publishStatus.textContent =
+      remembered
+        ? 'GitHub token 已从这台设备载入。'
+        : '';
+
+    this.ui.publishDialog.showModal();
   }
 
   async duplicateLevel() {
@@ -2090,14 +2217,10 @@ export class EditorController {
               '-',
             ),
         name:
-          name?.trim() ||
-          id,
+          name?.trim() || id,
       });
 
-    await this.onReplaceLevel(
-      level,
-    );
-
+    await this.onReplaceLevel(level);
     await this.refreshLevelList();
   }
 
@@ -2108,8 +2231,7 @@ export class EditorController {
         .catch(() => []);
 
     const drafts =
-      this.session
-        .listDrafts();
+      this.session.listDrafts();
 
     const options = [];
 
@@ -2131,50 +2253,36 @@ export class EditorController {
     const current =
       this.level?.id;
 
-    const draftValue =
-      `draft:${current}`;
-    const publishedValue =
-      `published:${current}`;
-
     if (
       drafts.some(
-        item =>
-          item.id === current,
+        item => item.id === current,
       )
     ) {
       this.ui.levels.value =
-        draftValue;
+        `draft:${current}`;
     } else {
       this.ui.levels.value =
-        publishedValue;
+        `published:${current}`;
     }
   }
 
   async loadSelectedLevel() {
-    const [
-      source,
-      id,
-    ] =
-      this.ui.levels
-        .value.split(':');
+    const [source, id] =
+      this.ui.levels.value.split(':');
 
     let level;
 
     if (source === 'draft') {
       level =
-        this.session
-          .loadDraft(id);
+        this.session.loadDraft(id);
     } else {
       level =
-        await this.loader
-          .loadPublished(id);
+        await this.loader.loadPublished(id);
     }
 
     if (!level) return;
 
-    this.session.setLevel(
-      level,
-    );
+    this.session.setLevel(level);
 
     await this.onReplaceLevel(
       this.session.level,
@@ -2197,21 +2305,32 @@ export class EditorController {
     const message =
       this.ui.commit.value.trim();
 
+    if (!token) {
+      this.ui.publishStatus.textContent =
+        '请输入 GitHub token。';
+      return;
+    }
+
     this.ui.publishStatus.textContent =
       'Publishing…';
 
     try {
       const result =
-        await this.session
-          .publishToGitHub({
-            token,
-            message,
-          });
+        await this.session.publishToGitHub({
+          token,
+          message,
+        });
+
+      if (this.ui.rememberToken.checked) {
+        this.session.rememberGithubToken(token);
+      } else {
+        this.session.forgetGithubToken();
+      }
+
+      this.updateChrome();
 
       this.ui.publishStatus.textContent =
         `Published: ${result.path}`;
-
-      this.ui.token.value = '';
 
       this.setStatus(
         '已提交 GitHub，Actions 会自动验证并部署 Pages',
@@ -2221,11 +2340,8 @@ export class EditorController {
       await this.refreshLevelList();
 
       setTimeout(
-        () =>
-          this.ui
-            .publishDialog
-            .close(),
-        850,
+        () => this.ui.publishDialog.close(),
+        800,
       );
     } catch (error) {
       this.ui.publishStatus.textContent =
@@ -2237,15 +2353,13 @@ export class EditorController {
     this.ui.validation.innerHTML =
       `<div class="editor-toast ${type}">${this.escape(message)}</div>`;
 
+    this.ui.validation.classList.add(
+      'visible',
+    );
+
     setTimeout(
       () => {
-        if (
-          this.ui.validation
-            .textContent ===
-          message
-        ) {
-          this.validate();
-        }
+        this.validate();
       },
       2200,
     );
