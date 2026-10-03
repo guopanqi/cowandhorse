@@ -363,8 +363,8 @@ export function validateLevel(
       )
       .length !== 1
   ) {
-    warn(
-      'Level should contain exactly one elevator object',
+    fail(
+      'Level must contain exactly one elevator object',
     );
   }
 
