@@ -30,6 +30,8 @@ export class NpcAgent {
       config.speed,
     );
 
+    this.interruptRoutine = null;
+
     this.sensor = new VisionSensor({
       distance: config.visionDistance,
       angleDeg: config.visionAngle,
@@ -308,9 +310,43 @@ export class NpcAgent {
     this.visual.setPose('idle');
   }
 
+  triggerInterrupt(nodes = []) {
+    if (
+      this.state === 'chase' ||
+      this.state === 'capture' ||
+      this.state === 'capture-ready'
+    ) {
+      return false;
+    }
+
+    this.interruptRoutine =
+      new OfficeRoutine(
+        nodes,
+        this.config.speed * 1.15,
+        { loop: false },
+      );
+
+    this.state = 'routine';
+    this.detection = 0;
+    return true;
+  }
+
   updateRoutine(dt) {
+    const activeRoutine =
+      this.interruptRoutine ??
+      this.routine;
+
     const step =
-      this.routine.update(this.position, dt);
+      activeRoutine.update(
+        this.position,
+        dt,
+      );
+
+    if (
+      this.interruptRoutine?.completed
+    ) {
+      this.interruptRoutine = null;
+    }
 
     this.activity = step.action;
 
@@ -385,6 +421,7 @@ export class NpcAgent {
     this.position.set(...start);
     this.forward.set(0, 0, 1);
     this.routine.reset();
+    this.interruptRoutine = null;
 
     this.state = 'routine';
     this.activity = 'idle';
