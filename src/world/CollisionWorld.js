@@ -6,6 +6,7 @@ export class CollisionWorld {
   addBox({
     center,
     size,
+    rotation = 0,
     movement = true,
     sight = true,
     label = 'collider',
@@ -15,15 +16,38 @@ export class CollisionWorld {
 
     this.colliders.push({
       label,
-      minX: x - sx * 0.5,
-      maxX: x + sx * 0.5,
+      centerX: x,
+      centerZ: z,
+      halfX: sx * 0.5,
+      halfZ: sz * 0.5,
       minY: y - sy * 0.5,
       maxY: y + sy * 0.5,
-      minZ: z - sz * 0.5,
-      maxZ: z + sz * 0.5,
+      rotation,
+      cos: Math.cos(rotation),
+      sin: Math.sin(rotation),
       movement,
       sight,
     });
+  }
+
+  pointInsideCollider(x, z, padding, collider) {
+    const dx = x - collider.centerX;
+    const dz = z - collider.centerZ;
+
+    const localX =
+      collider.cos * dx +
+      collider.sin * dz;
+
+    const localZ =
+      -collider.sin * dx +
+      collider.cos * dz;
+
+    return (
+      Math.abs(localX) <
+        collider.halfX + padding &&
+      Math.abs(localZ) <
+        collider.halfZ + padding
+    );
   }
 
   containsPoint(
@@ -34,18 +58,12 @@ export class CollisionWorld {
     return this.colliders.some(
       collider =>
         collider.movement &&
-        x >
-          collider.minX -
-            padding &&
-        x <
-          collider.maxX +
-            padding &&
-        z >
-          collider.minZ -
-            padding &&
-        z <
-          collider.maxZ +
-            padding,
+        this.pointInsideCollider(
+          x,
+          z,
+          padding,
+          collider,
+        ),
     );
   }
 
@@ -54,8 +72,7 @@ export class CollisionWorld {
     delta,
     radius = 0.34,
   ) {
-    const next =
-      position.clone();
+    const next = position.clone();
 
     const candidateX =
       next.x + delta.x;
@@ -93,60 +110,39 @@ export class CollisionWorld {
     const horizontalDistance =
       Math.hypot(dx, dz);
 
-    if (
-      horizontalDistance <=
-      0.001
-    ) {
+    if (horizontalDistance <= 0.001) {
       return false;
     }
 
     const steps = Math.max(
       2,
-      Math.ceil(
-        horizontalDistance /
-          0.08,
-      ),
+      Math.ceil(horizontalDistance / 0.08),
     );
 
-    for (
-      let i = 1;
-      i < steps;
-      i++
-    ) {
+    for (let i = 1; i < steps; i++) {
       const t = i / steps;
 
-      const x =
-        from.x + dx * t;
-
+      const x = from.x + dx * t;
       const y =
         from.y +
-        (to.y - from.y) *
-          t;
-
-      const z =
-        from.z + dz * t;
+        (to.y - from.y) * t;
+      const z = from.z + dz * t;
 
       const blocked =
         this.colliders.some(
           collider =>
             collider.sight &&
-            x >=
-              collider.minX &&
-            x <=
-              collider.maxX &&
-            z >=
-              collider.minZ &&
-            z <=
-              collider.maxZ &&
-            y >=
-              collider.minY &&
-            y <=
-              collider.maxY,
+            y >= collider.minY &&
+            y <= collider.maxY &&
+            this.pointInsideCollider(
+              x,
+              z,
+              0,
+              collider,
+            ),
         );
 
-      if (blocked) {
-        return true;
-      }
+      if (blocked) return true;
     }
 
     return false;
@@ -175,7 +171,13 @@ export class CollisionWorld {
       const x = from.x + dx * t;
       const z = from.z + dz * t;
 
-      if (this.containsPoint(x, z, radius)) {
+      if (
+        this.containsPoint(
+          x,
+          z,
+          radius,
+        )
+      ) {
         return false;
       }
     }
@@ -192,48 +194,37 @@ export class CollisionWorld {
     const stepSize = 0.07;
 
     for (
-      let distance =
-        stepSize;
-      distance <=
-      maxDistance;
+      let distance = stepSize;
+      distance <= maxDistance;
       distance += stepSize
     ) {
       const t =
-        distance /
-        maxDistance;
+        distance / maxDistance;
 
       const x =
         origin.x +
-        direction.x *
-          distance;
+        direction.x * distance;
 
       const z =
         origin.z +
-        direction.z *
-          distance;
+        direction.z * distance;
 
       const y =
         origin.y +
-        (targetHeight -
-          origin.y) *
-          t;
+        (targetHeight - origin.y) * t;
 
       const blocked =
         this.colliders.some(
           collider =>
             collider.sight &&
-            x >=
-              collider.minX &&
-            x <=
-              collider.maxX &&
-            z >=
-              collider.minZ &&
-            z <=
-              collider.maxZ &&
-            y >=
-              collider.minY &&
-            y <=
-              collider.maxY,
+            y >= collider.minY &&
+            y <= collider.maxY &&
+            this.pointInsideCollider(
+              x,
+              z,
+              0,
+              collider,
+            ),
         );
 
       if (blocked) {
