@@ -14,11 +14,17 @@ export class OfficeBuilder {
 
     this.materials = {
       floor: mat(0x76746c, 0.96),
+      zoneA: mat(0x77756d, 1),
+      zoneB: mat(0x70746f, 1),
+      zoneC: mat(0x6b7271, 1),
+
       wall: mat(0xd8d1c4, 0.9),
       dark: mat(0x343736, 0.9),
       desk: mat(0xa38d70, 0.9),
       partition: mat(0x87918e, 0.95),
-      cabinet: mat(0x5f6867, 0.92),
+      cabinet: mat(0x56615f, 0.92),
+      printer: mat(0xc8c6bc, 0.88),
+
       glass: new THREE.MeshStandardMaterial({
         color: 0xaac6c9,
         transparent: true,
@@ -26,21 +32,21 @@ export class OfficeBuilder {
         roughness: 0.25,
         depthWrite: false,
       }),
+
       screen: new THREE.MeshStandardMaterial({
         color: 0x88a9ad,
         emissive: 0x243a3d,
         emissiveIntensity: 1.3,
       }),
+
       plant: mat(0x65745a, 1),
       elevator: mat(0xb8aaa0, 0.55),
+
       warm: new THREE.MeshStandardMaterial({
         color: 0xe3a066,
         emissive: 0x7a3518,
         emissiveIntensity: 0.6,
       }),
-      center: mat(0x77756d, 1),
-      west: mat(0x6f746d, 1),
-      east: mat(0x6b7474, 1),
     };
   }
 
@@ -48,12 +54,12 @@ export class OfficeBuilder {
     this.addLights();
     this.addFloor();
     this.addBoundaryWalls();
-    this.addPlayerStation();
 
-    this.addWestZone();
-    this.addCenterZone();
-    this.addEastZone();
-    this.addBossOffice();
+    this.addStartArea();
+    this.addFirstRing();
+    this.addSecondRing();
+    this.addExecutiveRooms();
+    this.addFinalLobby();
 
     this.addExtraction();
     this.addAmbientDetails();
@@ -126,26 +132,26 @@ export class OfficeBuilder {
     );
 
     this.box(
-      'CenterAisle',
-      [2.5, 0.02, 14.3],
-      [0, 0.002, -0.1],
-      this.materials.center,
+      'StartZoneFloor',
+      [18.5, 0.015, 4.0],
+      [0, 0.001, 5.6],
+      this.materials.zoneA,
       { cast: false },
     );
 
     this.box(
-      'WestAisle',
-      [6.0, 0.018, 13.8],
-      [-5.5, 0.003, 0],
-      this.materials.west,
+      'TeamZoneFloor',
+      [18.5, 0.016, 6.6],
+      [0, 0.002, 0.6],
+      this.materials.zoneB,
       { cast: false },
     );
 
     this.box(
-      'EastAisle',
-      [6.0, 0.019, 13.8],
-      [5.5, 0.004, 0],
-      this.materials.east,
+      'ExecutiveZoneFloor',
+      [18.5, 0.017, 5.7],
+      [0, 0.003, -5.1],
+      this.materials.zoneC,
       { cast: false },
     );
   }
@@ -187,13 +193,6 @@ export class OfficeBuilder {
     );
   }
 
-  addPlayerStation() {
-    // The player's own desk is the first safe island. The main aisle is
-    // deliberately hidden behind it when crouched, so the player can
-    // observe the overlapping office routines before committing.
-    this.addDesk('PlayerDesk', 0, 5.75, 2.1, 0.9, 1.05);
-  }
-
   addDesk(
     name,
     x,
@@ -201,93 +200,127 @@ export class OfficeBuilder {
     width = 2.2,
     depth = 1.0,
     partitionHeight = 1.08,
+    rotation = 0,
   ) {
-    this.box(
+    const desk = new THREE.Group();
+    desk.position.set(x, 0, z);
+    desk.rotation.y = rotation;
+    this.group.add(desk);
+
+    const addPart = (
+      partName,
+      size,
+      local,
+      material,
+      {
+        collider = null,
+        cast = true,
+      } = {},
+    ) => {
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(...size),
+        material,
+      );
+
+      mesh.name = partName;
+      mesh.position.set(...local);
+      mesh.castShadow = cast;
+      mesh.receiveShadow = true;
+      desk.add(mesh);
+
+      if (collider) {
+        mesh.updateMatrixWorld(true);
+
+        const worldPosition = new THREE.Vector3();
+        const worldQuaternion = new THREE.Quaternion();
+        const worldScale = new THREE.Vector3();
+
+        mesh.matrixWorld.decompose(
+          worldPosition,
+          worldQuaternion,
+          worldScale,
+        );
+
+        // Current whitebox desks remain axis-aligned in practice.
+        // Keep the API rotation-ready while collision is box-based.
+        this.collision.addBox({
+          center: [worldPosition.x, worldPosition.y, worldPosition.z],
+          size,
+          movement: collider.movement ?? true,
+          sight: collider.sight ?? true,
+          label: partName,
+        });
+      }
+
+      return mesh;
+    };
+
+    addPart(
       name,
       [width, 0.72, depth],
-      [x, 0.38, z],
+      [0, 0.38, 0],
       this.materials.desk,
       { collider: { movement: true, sight: true } },
     );
 
-    this.box(
+    addPart(
       `${name}Partition`,
       [width + 0.06, partitionHeight, 0.08],
-      [x, partitionHeight * 0.5, z - depth * 0.47],
+      [0, partitionHeight * 0.5, -depth * 0.47],
       this.materials.partition,
       { collider: { movement: false, sight: true } },
     );
 
-    this.box(
+    addPart(
       `${name}Monitor`,
       [0.66, 0.44, 0.07],
-      [x, 1.08, z - 0.14],
+      [0, 1.08, -0.14],
       this.materials.screen,
       { collider: { movement: false, sight: true } },
     );
 
-    // Chairs stay visual-only. They should not collapse the walkable
-    // corridor width in this small level.
-    this.box(
+    addPart(
       `${name}Chair`,
       [0.48, 0.5, 0.48],
-      [x, 0.27, z + depth * 0.72],
+      [0, 0.27, depth * 0.72],
       this.materials.dark,
       { collider: null },
     );
   }
 
-  addWestZone() {
-    // Furniture is staggered, but every navigable gap is at least ~1.3m.
-    this.addDesk('WestA', -6.65, 4.55, 2.25, 1.0, 1.12);
-    this.addDesk('WestB', -4.15, 2.15, 2.15, 1.0, 1.12);
-    this.addDesk('WestC', -7.0, 0.05, 2.2, 1.0, 1.12);
-    this.addDesk('WestD', -4.15, -2.2, 2.15, 1.0, 1.12);
+  addTallCover(name, x, z, width = 1.2, depth = 0.8) {
+    this.box(
+      name,
+      [width, 1.82, depth],
+      [x, 0.91, z],
+      this.materials.cabinet,
+      { collider: { movement: true, sight: true } },
+    );
+  }
+
+  addStartArea() {
+    // Spawn is behind the desk. The player must leave around the left or
+    // right edge, so the first ten seconds are naturally an observation beat.
+    this.addDesk('PlayerDesk', 0, 5.72, 2.35, 0.95, 1.1);
+
+    // S1: a real sight-line break. The next encounter is not visible all at once.
+    this.addTallCover('S1Files', 0, 3.65, 1.15, 0.8);
+
+    this.addDesk('StartCoworkerWest', -4.8, 5.55, 2.15, 0.95, 1.02);
+    this.addDesk('StartCoworkerEast', 4.8, 5.55, 2.15, 0.95, 1.02);
+
     this.box(
       'WestPrinter',
-      [0.65, 0.95, 0.68],
-      [-9.35, 0.5, 5.65],
-      this.materials.wall,
+      [0.72, 0.95, 0.68],
+      [-9.25, 0.5, 5.85],
+      this.materials.printer,
       { collider: { movement: true, sight: true } },
     );
-
-    this.box(
-      'WestSafeCabinet',
-      [0.82, 1.9, 1.5],
-      [-3.55, 0.95, -5.25],
-      this.materials.cabinet,
-      { collider: { movement: true, sight: true } },
-    );
-  }
-
-  addCenterZone() {
-    // The central aisle remains physically open. Its danger comes from
-    // crossing patrols, not invisible collision.
-    this.box(
-      'CenterCoverMid',
-      [0.9, 1.65, 0.9],
-      [-1.75, 0.83, -0.2],
-      this.materials.cabinet,
-      { collider: { movement: true, sight: true } },
-    );
-
-    this.box(
-      'CenterCoverNorth',
-      [0.9, 1.35, 0.9],
-      [1.75, 0.68, -4.6],
-      this.materials.plant,
-      { collider: { movement: true, sight: true } },
-    );
-  }
-
-  addEastZone() {
-    this.addDesk('EastA', 4.2, 4.2, 2.15, 1.0, 1.04);
-    this.addDesk('EastB', 7.0, 2.35, 2.2, 1.0, 1.04);
 
     this.box(
       'TeaCounter',
-      [1.9, 0.96, 0.66],
-      [8.7, 0.49, 5.15],
+      [1.65, 0.98, 0.7],
+      [8.75, 0.5, 5.15],
       this.materials.desk,
       { collider: { movement: true, sight: true } },
     );
@@ -296,45 +329,82 @@ export class OfficeBuilder {
       'WaterCooler',
       [0.52, 1.32, 0.52],
       [9.15, 0.67, 3.85],
-      this.materials.wall,
+      this.materials.printer,
+      { collider: { movement: true, sight: true } },
+    );
+  }
+
+  addFirstRing() {
+    // West arc: cover is frequent and low. Crouching matters.
+    this.addDesk('WestA', -6.65, 4.55, 2.2, 1.0, 1.12);
+    this.addDesk('WestB', -7.1, 2.0, 2.2, 1.0, 1.12);
+    this.addDesk('WestC', -7.0, -0.35, 2.2, 1.0, 1.12);
+
+    // One taller object creates a reliable chase break without sealing the route.
+    this.addTallCover('WestTallFiles', -4.0, 0.95, 0.75, 1.45);
+
+    // East arc: fewer opaque objects, so the route feels visually exposed.
+    this.addDesk('EastA', 5.9, 4.45, 2.15, 1.0, 1.02);
+    this.addDesk('EastB', 7.0, 2.05, 2.2, 1.0, 1.02);
+
+    // S2: the ring recombines here, but another tall file bank hides the next stage.
+    this.addTallCover('S2Files', 0, -0.95, 1.35, 0.82);
+
+    // Offset side cover prevents the central shortcut from becoming one empty tunnel.
+    this.box(
+      'CenterLowWest',
+      [1.15, 0.86, 0.7],
+      [-1.9, 0.44, 1.65],
+      this.materials.desk,
       { collider: { movement: true, sight: true } },
     );
 
     this.box(
-      'EastPrivacyCabinet',
-      [0.8, 1.9, 1.6],
-      [3.7, 0.95, -4.8],
-      this.materials.cabinet,
-      { collider: { movement: true, sight: true } },
-    );
-
-    this.addGlassRoom('MeetingRoom', 6.55, -4.65, 4.0, 3.25);
-
-    this.box(
-      'MeetingTable',
-      [2.2, 0.72, 0.95],
-      [6.55, 0.38, -4.65],
+      'CenterLowEast',
+      [1.15, 0.86, 0.7],
+      [1.9, 0.44, 0.75],
       this.materials.desk,
       { collider: { movement: true, sight: true } },
     );
   }
 
-  addBossOffice() {
-    this.addGlassRoom('BossRoom', -6.55, -4.85, 4.0, 3.25);
+  addSecondRing() {
+    // The west side becomes more architectural near management.
+    this.addTallCover('WestArchive', -3.0, -2.75, 0.82, 1.6);
+
+    // The east side uses glass + one hard sight break.
+    this.addTallCover('EastPrivacy', 3.15, -2.75, 0.82, 1.6);
+
+    // S3: final observation island before the elevator lobby.
+    // It deliberately blocks the straight line to the elevator, forcing a left/right reveal.
+    this.addTallCover('S3Files', 0, -4.82, 1.75, 0.82);
+  }
+
+  addExecutiveRooms() {
+    this.addGlassRoom('BossRoom', -6.55, -4.55, 4.05, 3.35);
+    this.addGlassRoom('MeetingRoom', 6.55, -4.45, 4.05, 3.25);
 
     this.box(
       'BossDesk',
       [2.0, 0.72, 0.8],
-      [-6.55, 0.38, -5.05],
+      [-6.55, 0.38, -4.95],
       this.materials.desk,
       { collider: { movement: true, sight: true } },
     );
 
     this.box(
       'BossBookshelf',
-      [0.5, 2.0, 1.5],
-      [-8.35, 1.0, -5.2],
+      [0.5, 2.0, 1.45],
+      [-8.35, 1.0, -4.95],
       this.materials.cabinet,
+      { collider: { movement: true, sight: true } },
+    );
+
+    this.box(
+      'MeetingTable',
+      [2.1, 0.72, 0.9],
+      [6.55, 0.38, -4.55],
+      this.materials.desk,
       { collider: { movement: true, sight: true } },
     );
   }
@@ -343,7 +413,7 @@ export class OfficeBuilder {
     const height = 2.35;
     const y = height * 0.5;
     const thickness = 0.08;
-    const doorWidth = 1.35;
+    const doorWidth = 1.4;
     const segment = (width - doorWidth) * 0.5;
 
     const frontZ = centerZ + depth * 0.5;
@@ -390,6 +460,25 @@ export class OfficeBuilder {
       [centerX + offset, y, frontZ],
       this.materials.glass,
       { collider: glassCollider },
+    );
+  }
+
+  addFinalLobby() {
+    // Sparse by design: this is a commitment space, not another cubicle maze.
+    this.box(
+      'LobbyPlantWest',
+      [0.68, 1.35, 0.68],
+      [-3.0, 0.68, -6.25],
+      this.materials.plant,
+      { collider: { movement: true, sight: true } },
+    );
+
+    this.box(
+      'LobbyBenchEast',
+      [1.5, 0.62, 0.6],
+      [3.0, 0.32, -6.25],
+      this.materials.desk,
+      { collider: { movement: true, sight: true } },
     );
   }
 
