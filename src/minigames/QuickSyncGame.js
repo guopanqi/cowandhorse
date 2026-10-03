@@ -32,11 +32,11 @@ export class QuickSyncGame {
         ],
         prompt: '你应该先补什么？',
         choices: [
-          '更多数据表',
           '下降原因说明',
+          '更多数据表',
           '新的封面页',
         ],
-        answer: 1,
+        answer: 0,
       },
       {
         lines: [
@@ -47,10 +47,10 @@ export class QuickSyncGame {
         prompt: '接下来要做什么？',
         choices: [
           '继续加功能',
-          '整理现有流程说明',
           '推迟客户会议',
+          '整理现有流程说明',
         ],
-        answer: 1,
+        answer: 2,
       },
     ];
 
