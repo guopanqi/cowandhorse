@@ -18,7 +18,7 @@ export class OfficeLevel {
     this.player = new PlayerController({
       input,
       collision: this.collision,
-      spawn: data.playerSpawn
+      spawn: data.playerSpawn,
     });
     scene.add(this.player.visual.group);
 
@@ -31,37 +31,53 @@ export class OfficeLevel {
     });
   }
 
-  update(dt, { phase, secondsAfterSix }) {
-    const playerEnabled = phase === 'escape';
-    this.player.update(dt, playerEnabled);
+  update(dt, { phase }) {
+    const canMove = phase === 'prep' || phase === 'escape';
+    const moveRegion = phase === 'prep' ? this.data.prepZone : null;
 
+    this.player.update(dt, {
+      enabled: canMove,
+      moveRegion,
+    });
+
+    const worldActive = phase === 'prep' || phase === 'escape';
     let caughtBy = null;
     let maxDetection = 0;
+    let isChased = false;
 
-    for (const entry of this.npcs) {
-      const { agent, cone } = entry;
-
-      if (agent.config.activeAfterSeconds != null) {
-        agent.setEnabled(secondsAfterSix >= agent.config.activeAfterSeconds);
+    for (const { agent, cone } of this.npcs) {
+      if (worldActive) {
+        agent.update(dt, this.player, phase === 'escape');
       }
 
-      agent.update(dt, this.player, phase === 'escape');
       cone.update();
 
       maxDetection = Math.max(maxDetection, agent.detection);
-      if (agent.justCaught) caughtBy = agent;
+      isChased ||= agent.state === 'chase';
+
+      if (phase === 'escape' && agent.justCaught) {
+        caughtBy = agent;
+      }
     }
 
-    return { caughtBy, maxDetection };
+    return {
+      caughtBy,
+      maxDetection,
+      isChased,
+    };
   }
 
   isAtExtraction() {
     const target = new THREE.Vector3(...this.data.extraction.position);
-    return this.player.position.distanceTo(target) <= this.data.extraction.radius;
+    return (
+      this.player.position.distanceTo(target) <=
+      this.data.extraction.radius
+    );
   }
 
   reset() {
     this.player.reset(this.data.playerSpawn);
+
     for (const { agent, cone } of this.npcs) {
       agent.reset();
       cone.update();
