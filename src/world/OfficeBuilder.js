@@ -188,7 +188,10 @@ export class OfficeBuilder {
   }
 
   addPlayerStation() {
-    this.addDesk('PlayerDesk', 0, 7.05, 2.1, 0.9, 1.05);
+    // The player's own desk is the first safe island. The main aisle is
+    // deliberately hidden behind it when crouched, so the player can
+    // observe the overlapping office routines before committing.
+    this.addDesk('PlayerDesk', 0, 5.75, 2.1, 0.9, 1.05);
   }
 
   addDesk(
