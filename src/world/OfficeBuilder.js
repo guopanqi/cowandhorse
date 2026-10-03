@@ -350,22 +350,6 @@ export class OfficeBuilder {
     // S2: the ring recombines here, but another tall file bank hides the next stage.
     this.addTallCover('S2Files', 0, -0.95, 1.35, 0.82);
 
-    // Offset side cover prevents the central shortcut from becoming one empty tunnel.
-    this.box(
-      'CenterLowWest',
-      [1.15, 0.86, 0.7],
-      [-1.9, 0.44, 1.65],
-      this.materials.desk,
-      { collider: { movement: true, sight: true } },
-    );
-
-    this.box(
-      'CenterLowEast',
-      [1.15, 0.86, 0.7],
-      [1.9, 0.44, 0.75],
-      this.materials.desk,
-      { collider: { movement: true, sight: true } },
-    );
   }
 
   addSecondRing() {
