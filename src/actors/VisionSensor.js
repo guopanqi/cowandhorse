@@ -7,20 +7,35 @@ export class VisionSensor {
     this.collision = collision;
   }
 
-  visibility(observerPosition, forward, targetPosition) {
-    const toTarget = targetPosition.clone().sub(observerPosition);
-    const distance = toTarget.length();
+  visibility(observerEye, forward, targetEye) {
+    const horizontal = new THREE.Vector3(
+      targetEye.x - observerEye.x,
+      0,
+      targetEye.z - observerEye.z,
+    );
+
+    const distance = horizontal.length();
     if (distance > this.distance || distance < 0.001) return 0;
 
-    toTarget.normalize();
-    const dot = THREE.MathUtils.clamp(forward.dot(toTarget), -1, 1);
+    horizontal.normalize();
+
+    const flatForward = forward.clone();
+    flatForward.y = 0;
+    flatForward.normalize();
+
+    const dot = THREE.MathUtils.clamp(flatForward.dot(horizontal), -1, 1);
     const angle = Math.acos(dot);
     if (angle > this.angle * 0.5) return 0;
 
-    if (this.collision.blocksSegment(observerPosition, targetPosition)) return 0;
+    if (this.collision.blocksSight(observerEye, targetEye)) return 0;
 
     const centerFactor = 1 - angle / (this.angle * 0.5);
     const distanceFactor = 1 - distance / this.distance;
-    return 0.45 + centerFactor * 0.35 + distanceFactor * 0.2;
+
+    return THREE.MathUtils.clamp(
+      0.35 + centerFactor * 0.4 + distanceFactor * 0.25,
+      0,
+      1,
+    );
   }
 }
