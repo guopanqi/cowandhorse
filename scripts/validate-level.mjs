@@ -70,41 +70,30 @@ for (const [a, b] of officeLevel.navigation.edges) {
 }
 
 const authoredPlayerRoutes = {
-  'opening-left': ['P', 'PL', 'SL', 'S1'],
-  'opening-right': ['P', 'PR', 'SR', 'S1'],
+  'opening-left': ['P', 'PL', 'S1L', 'S1'],
+  'opening-right': ['P', 'PR', 'S1R', 'S1'],
 
   'first-ring-west': [
-    'S1', 'W1', 'W2', 'W3', 'W4A', 'W4B', 'S2FL', 'S2',
-  ],
-  'first-ring-center-left': [
-    'S1', 'S1FL', 'C1L', 'C2', 'S2',
-  ],
-  'first-ring-center-right': [
-    'S1', 'S1FR', 'C1R', 'C2', 'S2',
+    'S1', 'W1', 'W2', 'W3', 'W4', 'S2W', 'S2',
   ],
   'first-ring-east': [
-    'S1', 'E1', 'E2', 'E3', 'E4', 'S2FR', 'S2',
+    'S1', 'E0', 'E1', 'E2', 'E3', 'E4', 'S2E', 'S2',
+  ],
+  'first-ring-crosscut': [
+    'S1', 'W1', 'E0', 'E1', 'E2', 'E3', 'E4', 'S2E', 'S2',
   ],
 
   'second-ring-west': [
-    'S2', 'S2FL', 'S2L', 'W5', 'W6', 'W6B', 'W7', 'S3FL', 'S3',
+    'S2', 'S2W', 'BW0', 'BW1', 'BW2', 'BW3', 'BACK0', 'BACK1', 'S3',
   ],
-  'second-ring-center-left': [
-    'S2', 'S2FL', 'S2L', 'C3L', 'C3', 'C4', 'S3',
-  ],
-  'second-ring-center-right': [
-    'S2', 'S2FR', 'S2R', 'C3R', 'C3', 'C4', 'S3',
+  'second-ring-center': [
+    'S2', 'C0', 'C1', 'C2', 'BACK0', 'BACK1', 'S3',
   ],
   'second-ring-east': [
-    'S2', 'S2FR', 'S2R', 'E5', 'E6', 'E6B', 'E7', 'S3FR', 'S3',
+    'S2', 'S2E', 'ME0', 'ME1', 'ME2', 'ME3', 'S3',
   ],
 
-  'final-left': [
-    'S3', 'S3FL', 'S3L', 'EL', 'EV',
-  ],
-  'final-right': [
-    'S3', 'S3FR', 'S3R', 'ER', 'EV',
-  ],
+  'final-lobby': ['S3', 'L1', 'L2', 'EV'],
 };
 
 for (const [routeName, route] of Object.entries(authoredPlayerRoutes)) {
