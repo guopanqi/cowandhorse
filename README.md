@@ -6,22 +6,24 @@ A small 3D office stealth-comedy game built with Three.js.
 
 It is 18:00. Get out of the office without being caught by someone who can give you more work.
 
-The first playable slice keeps the content deliberately small while using the same architecture intended for later versions:
+The current playable slice includes:
 
-- 10-second pre-escape countdown
+- 10-second pre-escape phase with limited movement around your workstation
 - third-person office traversal
-- data-driven NPC patrol routes
-- visible vision cones and detection
-- work encounters instead of instant game-over
-- pluggable overtime minigames
+- standing, crouching and sprinting
+- three different escape routes
+- height-aware cover and line of sight
+- NPC office routines instead of generic guard patrols
+- suspicion, chase, lost-target recovery and catch sequences
+- overtime minigames
 - time and energy as failure resources
-- extraction at the elevator
+- timed elevator extraction
 
 ## Engineering principle
 
 **Simplify implementations, not architecture.**
 
-Phase 1 uses procedural low-poly office assets, waypoint patrols and simple collision. These are behind stable modules so they can later be replaced by GLB assets, richer animation, navmesh/pathfinding, more advanced sensing, inventory and additional minigames without rewriting the game loop.
+The current build uses procedural low-poly office assets, simple height-aware box collision and scripted office routines. These sit behind stable modules so they can later be replaced by GLB assets, richer animation, BVH/capsule collision, navmesh/pathfinding, inventory and more advanced AI without rewriting the game loop.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/MILESTONES.md](docs/MILESTONES.md).
 
@@ -36,12 +38,18 @@ Controls:
 
 - `WASD` / arrow keys: move
 - `Shift`: sprint
+- `C`: crouch / stand
 - `R`: restart after win/failure
+
+## Current level grammar
+
+- **West / cubicles** — slower route with repeated low cover; crouching is useful.
+- **Center / main aisle** — fastest route but exposed to long sight lines and the boss.
+- **East / meeting rooms** — medium route where glass walls and the manager's routine matter.
 
 ## Stack
 
 - Three.js
 - Vite
 - HTML/CSS UI overlays
-
-No 3D asset dependency is required for the first slice.
+- GitHub Actions + GitHub Pages
