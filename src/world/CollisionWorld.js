@@ -26,26 +26,60 @@ export class CollisionWorld {
     });
   }
 
-  containsPoint(x, z, padding = 0) {
-    return this.colliders.some(collider =>
-      collider.movement &&
-      x > collider.minX - padding &&
-      x < collider.maxX + padding &&
-      z > collider.minZ - padding &&
-      z < collider.maxZ + padding
+  containsPoint(
+    x,
+    z,
+    padding = 0,
+  ) {
+    return this.colliders.some(
+      collider =>
+        collider.movement &&
+        x >
+          collider.minX -
+            padding &&
+        x <
+          collider.maxX +
+            padding &&
+        z >
+          collider.minZ -
+            padding &&
+        z <
+          collider.maxZ +
+            padding,
     );
   }
 
-  moveAndResolve(position, delta, radius = 0.34) {
-    const next = position.clone();
+  moveAndResolve(
+    position,
+    delta,
+    radius = 0.34,
+  ) {
+    const next =
+      position.clone();
 
-    const candidateX = next.x + delta.x;
-    if (!this.containsPoint(candidateX, next.z, radius)) {
+    const candidateX =
+      next.x + delta.x;
+
+    if (
+      !this.containsPoint(
+        candidateX,
+        next.z,
+        radius,
+      )
+    ) {
       next.x = candidateX;
     }
 
-    const candidateZ = next.z + delta.z;
-    if (!this.containsPoint(next.x, candidateZ, radius)) {
+    const candidateZ =
+      next.z + delta.z;
+
+    if (
+      !this.containsPoint(
+        next.x,
+        candidateZ,
+        radius,
+      )
+    ) {
       next.z = candidateZ;
     }
 
@@ -55,30 +89,130 @@ export class CollisionWorld {
   blocksSight(from, to) {
     const dx = to.x - from.x;
     const dz = to.z - from.z;
-    const horizontalDistance = Math.hypot(dx, dz);
-    if (horizontalDistance <= 0.001) return false;
 
-    const steps = Math.max(2, Math.ceil(horizontalDistance / 0.08));
+    const horizontalDistance =
+      Math.hypot(dx, dz);
 
-    for (let i = 1; i < steps; i++) {
+    if (
+      horizontalDistance <=
+      0.001
+    ) {
+      return false;
+    }
+
+    const steps = Math.max(
+      2,
+      Math.ceil(
+        horizontalDistance /
+          0.08,
+      ),
+    );
+
+    for (
+      let i = 1;
+      i < steps;
+      i++
+    ) {
       const t = i / steps;
-      const x = from.x + dx * t;
-      const y = from.y + (to.y - from.y) * t;
-      const z = from.z + dz * t;
 
-      const blocked = this.colliders.some(collider =>
-        collider.sight &&
-        x >= collider.minX &&
-        x <= collider.maxX &&
-        z >= collider.minZ &&
-        z <= collider.maxZ &&
-        y >= collider.minY &&
-        y <= collider.maxY
-      );
+      const x =
+        from.x + dx * t;
 
-      if (blocked) return true;
+      const y =
+        from.y +
+        (to.y - from.y) *
+          t;
+
+      const z =
+        from.z + dz * t;
+
+      const blocked =
+        this.colliders.some(
+          collider =>
+            collider.sight &&
+            x >=
+              collider.minX &&
+            x <=
+              collider.maxX &&
+            z >=
+              collider.minZ &&
+            z <=
+              collider.maxZ &&
+            y >=
+              collider.minY &&
+            y <=
+              collider.maxY,
+        );
+
+      if (blocked) {
+        return true;
+      }
     }
 
     return false;
+  }
+
+  sightDistanceAlongRay(
+    origin,
+    direction,
+    maxDistance,
+    targetHeight,
+  ) {
+    const stepSize = 0.07;
+
+    for (
+      let distance =
+        stepSize;
+      distance <=
+      maxDistance;
+      distance += stepSize
+    ) {
+      const t =
+        distance /
+        maxDistance;
+
+      const x =
+        origin.x +
+        direction.x *
+          distance;
+
+      const z =
+        origin.z +
+        direction.z *
+          distance;
+
+      const y =
+        origin.y +
+        (targetHeight -
+          origin.y) *
+          t;
+
+      const blocked =
+        this.colliders.some(
+          collider =>
+            collider.sight &&
+            x >=
+              collider.minX &&
+            x <=
+              collider.maxX &&
+            z >=
+              collider.minZ &&
+            z <=
+              collider.maxZ &&
+            y >=
+              collider.minY &&
+            y <=
+              collider.maxY,
+        );
+
+      if (blocked) {
+        return Math.max(
+          0,
+          distance - stepSize,
+        );
+      }
+    }
+
+    return maxDistance;
   }
 }
