@@ -21,6 +21,7 @@ export class EditorController {
     renderer,
     session,
     loader,
+    recorder = null,
     onPlay,
     onRebuild,
     onReplaceLevel,
@@ -31,6 +32,7 @@ export class EditorController {
     this.canvas = renderer.renderer.domElement;
     this.session = session;
     this.loader = loader;
+    this.recorder = recorder;
     this.onPlay = onPlay;
     this.onRebuild = onRebuild;
     this.onReplaceLevel = onReplaceLevel;
@@ -131,6 +133,7 @@ export class EditorController {
             <button data-editor-action="import">Import</button>
             <button data-editor-action="duplicate-level">Duplicate</button>
             <button data-editor-action="revert">Revert</button>
+            <button data-editor-action="clear-runs">Clear Runs</button>
             <button class="editor-publish" data-editor-action="publish">Publish</button>
           </div>
 
@@ -760,6 +763,30 @@ export class EditorController {
                 });
               },
             );
+        },
+      );
+
+    const runs =
+      this.recorder?.list(
+        this.level.id,
+      ) ?? [];
+
+    runs
+      .slice(0, 6)
+      .reverse()
+      .forEach(
+        (run, index) => {
+          if (
+            run.points?.length >
+            1
+          ) {
+            this.addLine(
+              run.points,
+              0xf06cc6,
+              0.11 +
+                index * 0.035,
+            );
+          }
         },
       );
 
@@ -1892,6 +1919,17 @@ export class EditorController {
 
         this.setStatus(
           '已恢复正式发布版本',
+          'success',
+        );
+      } else if (
+        action === 'clear-runs'
+      ) {
+        this.recorder?.clear(
+          this.level.id,
+        );
+        this.rebuildHelpers();
+        this.setStatus(
+          '已清除本关试玩轨迹',
           'success',
         );
       } else if (
