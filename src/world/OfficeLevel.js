@@ -7,6 +7,7 @@ import { NavigationGraph } from './NavigationGraph.js';
 import { PlayerController } from '../actors/PlayerController.js';
 import { NpcAgent } from '../actors/NpcAgent.js';
 import { VisionConeVisual } from '../presentation/VisionConeVisual.js';
+import { SafeInteractionSystem } from '../game/SafeInteractionSystem.js';
 
 export class OfficeLevel {
   constructor({ scene, input, data }) {
@@ -41,6 +42,14 @@ export class OfficeLevel {
     this.runtimeGroup.add(
       this.player.visual.group,
     );
+
+    this.interactions =
+      new SafeInteractionSystem({
+        interactions:
+          data.interactions ?? [],
+        player: this.player,
+        input: this.input,
+      });
 
     this.npcs = data.npcs.map(config => {
       const agent = new NpcAgent(
@@ -103,9 +112,29 @@ export class OfficeLevel {
   }
 
   update(dt, { phase }) {
-    const canMove =
+    const worldActive =
       phase === 'prep' ||
       phase === 'escape';
+
+    const threatBlocksInteraction =
+      this.agents.some(
+        agent =>
+          agent.state === 'chase' ||
+          agent.state === 'capture' ||
+          agent.state === 'capture-ready' ||
+          agent.detection > 0.55,
+      );
+
+    let interaction =
+      this.interactions.update({
+        enabled: worldActive,
+        canEnter:
+          !threatBlocksInteraction,
+      });
+
+    const canMove =
+      worldActive &&
+      !interaction.active;
 
     const moveRegion =
       phase === 'prep'
@@ -117,9 +146,9 @@ export class OfficeLevel {
       moveRegion,
     });
 
-    const worldActive =
-      phase === 'prep' ||
-      phase === 'escape';
+    this.interactions.refreshNearby();
+    interaction =
+      this.interactions.state;
 
     let caughtBy = null;
     let maxDetection = 0;
@@ -133,7 +162,8 @@ export class OfficeLevel {
         agent.update(
           dt,
           this.player,
-          phase === 'escape',
+          phase === 'escape' &&
+            !interaction.safe,
         );
       }
 
@@ -180,6 +210,7 @@ export class OfficeLevel {
       maxDetection,
       isChased,
       extraction,
+      interaction,
     };
   }
 
@@ -187,6 +218,8 @@ export class OfficeLevel {
     this.player.reset(
       this.data.playerSpawn,
     );
+
+    this.interactions.reset();
 
     for (
       const { agent, cone }
