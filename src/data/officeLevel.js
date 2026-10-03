@@ -33,7 +33,7 @@ export const officeLevel = {
 
       { id: 'W0', position: [-2.6, 0, 5.25] },
       { id: 'W1', position: [-4.9, 0, 5.8] },
-      { id: 'WP', position: [-8.55, 0, 5.8] },
+      { id: 'WP', position: [-8.35, 0, 5.8] },
       { id: 'W2', position: [-2.6, 0, 3.2] },
       { id: 'W3', position: [-5.0, 0, 3.2] },
       { id: 'W4', position: [-2.6, 0, 1.2] },
@@ -41,9 +41,10 @@ export const officeLevel = {
       { id: 'W6', position: [-2.6, 0, -1.2] },
       { id: 'W7', position: [-5.0, 0, -1.2] },
       { id: 'W8', position: [-2.6, 0, -3.7] },
-      { id: 'W9', position: [-5.0, 0, -3.7] },
       { id: 'W10', position: [-2.6, 0, -5.6] },
-      { id: 'BD', position: [-6.55, 0, -2.95] },
+      { id: 'BA0', position: [-6.0, 0, -1.2] },
+      { id: 'BA1', position: [-6.0, 0, -2.5] },
+      { id: 'BD', position: [-6.55, 0, -2.5] },
       { id: 'BI', position: [-6.55, 0, -3.75] },
 
       { id: 'E0', position: [2.6, 0, 5.2] },
@@ -80,9 +81,10 @@ export const officeLevel = {
       ['W4', 'W6'],
       ['W6', 'W7'],
       ['W6', 'W8'],
-      ['W8', 'W9'],
       ['W8', 'W10'],
-      ['W9', 'BD'],
+      ['W7', 'BA0'],
+      ['BA0', 'BA1'],
+      ['BA1', 'BD'],
       ['BD', 'BI'],
       ['W10', 'C6'],
 
@@ -102,12 +104,11 @@ export const officeLevel = {
       ['E4', 'E6'],
       ['E6', 'E7'],
       ['E6', 'E8'],
-      ['E8', 'MD'],
+      ['E7', 'MD'],
       ['MD', 'MI'],
       ['E8', 'E9'],
       ['E9', 'C6'],
 
-      ['C1', 'E0'],
       ['C2', 'E2'],
       ['C3', 'E4'],
       ['C4', 'E6'],
@@ -135,7 +136,7 @@ export const officeLevel = {
       npcId: 'boss',
       routine: [
         {
-          position: [-6.55, 0, -2.95],
+          position: [-6.55, 0, -2.5],
           action: 'walk',
           duration: 0,
         },
@@ -152,7 +153,7 @@ export const officeLevel = {
           facing: [0, 0, -1],
         },
         {
-          position: [-6.55, 0, -2.95],
+          position: [-6.55, 0, -2.5],
           action: 'walk',
           duration: 0,
         },
@@ -190,7 +191,7 @@ export const officeLevel = {
           facing: [0, 0, 1],
         },
         {
-          position: [-8.55, 0, 5.8],
+          position: [-8.35, 0, 5.8],
           action: 'print',
           duration: 2.8,
           facing: [-1, 0, 0],
@@ -282,7 +283,7 @@ export const officeLevel = {
           facing: [0, 0, -1],
         },
         {
-          position: [-6.55, 0, -2.95],
+          position: [-6.55, 0, -2.5],
           action: 'inspect',
           duration: 1.5,
           facing: [1, 0, 0],
@@ -300,7 +301,7 @@ export const officeLevel = {
           facing: [0, 0, 1],
         },
         {
-          position: [-6.55, 0, -2.95],
+          position: [-6.55, 0, -2.5],
           action: 'walk',
           duration: 0,
         },
