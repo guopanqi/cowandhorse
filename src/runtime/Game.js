@@ -165,7 +165,7 @@ export class Game {
 
     if (
       this.phase === 'escape' &&
-      this.level.isAtExtraction()
+      levelState.extraction?.escaped
     ) {
       this.finishSuccess();
     }
@@ -202,6 +202,8 @@ export class Game {
           levelState.isChased,
         isCrouched:
           this.level.player.isCrouched,
+        extraction:
+          levelState.extraction,
       },
       dt,
     );
