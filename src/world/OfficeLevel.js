@@ -2,6 +2,7 @@ import { CollisionWorld } from './CollisionWorld.js';
 import { OfficeBuilder } from './OfficeBuilder.js';
 import { ExtractionZone } from './ExtractionZone.js';
 import { OfficeEventDirector } from '../game/OfficeEventDirector.js';
+import { NavigationGraph } from './NavigationGraph.js';
 import { PlayerController } from '../actors/PlayerController.js';
 import { NpcAgent } from '../actors/NpcAgent.js';
 import { VisionConeVisual } from '../presentation/VisionConeVisual.js';
@@ -21,6 +22,12 @@ export class OfficeLevel {
     );
     this.builder.build();
 
+    this.navigation = new NavigationGraph(
+      data.navigation,
+      this.collision,
+      0.3,
+    );
+
     this.player = new PlayerController({
       input,
       collision: this.collision,
@@ -32,6 +39,7 @@ export class OfficeLevel {
       const agent = new NpcAgent(
         config,
         this.collision,
+        this.navigation,
       );
 
       const cone =
